@@ -186,9 +186,10 @@ async function viewRate(T) {
 
   app.querySelector('details.howto').addEventListener('toggle', () => lsSet('wtn-howto-seen', '1'));
   const saveState = app.querySelector('#save-state');
-  const mineDoc = await store.getMine();
-  const mine = (mineDoc && mineDoc.r) ? JSON.parse(JSON.stringify(mineDoc.r)) : {};
-  if (!mineDoc || mineDoc.table !== T) track(store.setMyTable(T), saveState);
+  // Your saved ratings load live from the database, so a reload or a slow connection never shows a blank sheet.
+  const mine = {};
+  const inflight = new Map();
+  track(store.setMyTable(T), saveState);
 
   const paint = (k) => {
     const card = app.querySelector(`.card[data-key="${k}"]`);
@@ -213,11 +214,22 @@ async function viewRate(T) {
   };
   codes.forEach(c => paint(keyOf(c)));
   progress();
+  unsubs.push(store.watchMine(doc => {
+    const r = (doc && doc.r) || {};
+    codes.forEach(c => {
+      const k = keyOf(c);
+      if (inflight.get(k) || pending.has('note-' + k)) return;
+      if (r[k]) mine[k] = JSON.parse(JSON.stringify(r[k]));
+      paint(k);
+    });
+    progress();
+  }));
 
   const save = (k) => {
     const x = mine[k] || {};
     const val = { o: x.o || [], me: x.me || null, most: x.most || null, note: x.note || '' };
-    return track(store.saveRating(T, k, val), saveState);
+    inflight.set(k, (inflight.get(k) || 0) + 1);
+    return track(store.saveRating(T, k, val), saveState).finally(() => inflight.set(k, inflight.get(k) - 1));
   };
 
   app.addEventListener('click', onClick);
