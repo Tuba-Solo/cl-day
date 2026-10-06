@@ -1,0 +1,34 @@
+// CL day gap analysis site. This block is ADDED inside the existing
+//   match /databases/{database}/documents { ... }
+// of the eips-planner-dev rules. It does not change any existing rule.
+// Writes close at 2026-10-09 00:00 UTC (6:00 pm in Alberta on October 8).
+
+    // ---- CL day gap analysis (added 2026-10-06) ----
+    match /clDaySessions/{sid} {
+      function cdOpen() { return request.time < timestamp.date(2026, 10, 9); }
+      function cdTable(t) { return t in ['A', 'B', 'C', 'D', 'E']; }
+      function cdBriefKeys() { return ['table', 'createdAt', 'updatedAt', 'code', 'content', 'know', 'fits', 'watch', 'sources']; }
+
+      match /ratings/{uid} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && cdOpen()
+          && request.auth.uid == uid
+          && cdTable(request.resource.data.table)
+          && request.resource.data.keys().hasOnly(['table', 'updatedAt', 'r']);
+      }
+      match /tables/{t} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && cdOpen() && cdTable(t)
+          && request.resource.data.keys().hasOnly(['v', 'disagreed', 'updatedAt']);
+      }
+      match /briefs/{id} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && cdOpen()
+          && cdTable(request.resource.data.table)
+          && request.resource.data.keys().hasOnly(cdBriefKeys());
+        allow update: if request.auth != null && cdOpen()
+          && request.resource.data.table == resource.data.table
+          && request.resource.data.keys().hasOnly(cdBriefKeys());
+      }
+    }
+    // ---- end CL day block ----
