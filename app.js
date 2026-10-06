@@ -125,8 +125,8 @@ function viewStart() {
     </div>
     <h2>Four steps</h2>
     <ol class="lede">
-      <li><b>On your own · 25 min.</b> Rate your table’s statements on your own laptop.</li>
-      <li><b>At your table · 25 min.</b> Close your laptops. Work from one table screen. Agree on a verdict for each statement.</li>
+      <li><b>On your own · 25 min.</b> Open <b>Rate my curriculum</b> on your own laptop and rate your table’s statements.</li>
+      <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each statement.</li>
       <li><b>Briefs · 15 min.</b> Write a brief for the two or three truly new items that matter most.</li>
       <li><b>With the room · 15 min.</b> Each table shares its top items.</li>
     </ol>`;
@@ -148,7 +148,7 @@ async function viewRate(T) {
     <div class="pagehead"><div>
       <span class="step-tag">Step 1 · On your own · 25 min</span>
       <h1>Table ${T} · Your ratings</h1></div>
-      <div class="row"><a class="btn" href="#/">Change table</a><a class="btn" href="#/table/${T}">Table screen</a></div>
+      <div class="row"><a class="btn" href="#/">Change table</a><a class="btn" href="#/table/${T}">Review your ratings</a></div>
     </div>
     <details class="howto" ${seen ? '' : 'open'}>
       <summary>How to rate</summary>
@@ -168,7 +168,7 @@ async function viewRate(T) {
       <div class="bar" aria-hidden="true"><span id="prog-bar"></span></div>
       <span class="muted" id="save-state" aria-live="polite"></span>
     </div>
-    <div id="done" class="done-banner" hidden>All rated. Close your laptop and join your table. Your table will work from one screen.</div>
+    <div id="done" class="done-banner" hidden>All rated. Close your laptop and join your table. Your table will review its ratings together on one screen.</div>
     ${DATA.tables[T].map(n => `
       <div class="cluster-head"><h2>Cluster ${n} · ${esc(CL[n].name)}</h2><p>${esc(CL[n].covers)}</p></div>
       ${CL[n].codes.map(code => {
@@ -258,9 +258,9 @@ function viewTable(T) {
   let tableDoc = {};
   app.innerHTML = `
     <div class="pagehead"><div>
-      <span class="step-tag">Step 2 · At your table · 25 min</span>
-      <h1>Table ${T} · Together</h1></div>
-      <div class="row"><a class="btn" href="#/rate/${T}">My ratings</a></div>
+      <span class="step-tag">Step 2 · As a group · 25 min</span>
+      <h1>Table ${T} · Review your ratings</h1></div>
+      <div class="row"><a class="btn" href="#/rate/${T}">Rate my curriculum</a></div>
     </div>
     <p class="lede">Work from this one screen. Start with the statements marked <b>Split</b>. Agree on a verdict for each statement.</p>
     <div class="toolbar">
