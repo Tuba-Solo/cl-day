@@ -157,3 +157,23 @@ table.sum td.stmt-cell { min-width: 280px; max-width: 460px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 table.sum td.stmt-cell { white-space: pre-line; }
 table.sum td:first-child { white-space: nowrap; }
+
+/* Topic card */
+.card.topic { position: relative; }
+.card.topic .done-tick { position: absolute; top: 14px; right: 16px; }
+.topic-top { display: flex; gap: 12px; align-items: baseline; padding-right: 64px; }
+.tid { flex: none; font-size: 14px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--slate-tint); color: var(--slate); }
+.tname { margin: 0; font-size: 20px; line-height: 1.3; }
+.tdesc { margin: 8px 0 6px; font-size: 17px; }
+details.stmts { margin: 4px 0 0; }
+details.stmts summary { cursor: pointer; font-weight: 700; color: var(--blue); min-height: 40px; display: flex; align-items: center; font-size: 15px; }
+.stmt-list { list-style: none; margin: 4px 0 8px; padding: 0; }
+.stmt-list li { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--rule); }
+.stmt-list .stmt { font-size: 15px; }
+.stmt-list.also .stmt { color: var(--muted); }
+.also-label { font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 6px; }
+ul.cross { list-style: none; padding: 0; }
+ul.cross li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+details.stmts summary::before { content: "▸"; display: inline-block; width: 1.1em; }
+details.stmts[open] summary::before { content: "▾"; }
+details.stmts summary::-webkit-details-marker { display: none; }
