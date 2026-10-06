@@ -352,9 +352,11 @@ function viewTable(T) {
     const cur = (tableDoc.v || {})[k] || {};
     const verdict = cur.verdict === b.dataset.v ? null : b.dataset.v;
     tableDoc.v = tableDoc.v || {};
-    tableDoc.v[k] = { ...cur, verdict, note: cur.note || '' };
+    // Take the note from the box itself. A pending, unsaved note must not be lost.
+    const note = b.closest('.card').querySelector('.vnote').value;
+    tableDoc.v[k] = { ...cur, verdict, note };
     paintVerdicts();
-    track(store.saveVerdict(T, k, { verdict, note: tableDoc.v[k].note }), saveState);
+    track(store.saveVerdict(T, k, { verdict, note }), saveState);
   };
   const onInput = (e) => {
     const t = e.target;
@@ -364,7 +366,12 @@ function viewTable(T) {
       tableDoc.v = tableDoc.v || {};
       tableDoc.v[k] = { verdict: cur.verdict || null, note: t.value };
       saveState.textContent = 'Saving…';
-      debounce('vnote-' + k, () => track(store.saveVerdict(T, k, tableDoc.v[k]), saveState));
+      // Read the verdict and the note when the save fires, not when typing started.
+      // Live updates can replace tableDoc in between.
+      debounce('vnote-' + k, () => {
+        const now = (tableDoc.v || {})[k] || {};
+        return track(store.saveVerdict(T, k, { verdict: now.verdict || null, note: t.value }), saveState);
+      });
     } else if (t.dataset.field === 'disagreed') {
       tableDoc.disagreed = t.value;
       saveState.textContent = 'Saving…';
