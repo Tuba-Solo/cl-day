@@ -3,18 +3,14 @@ import { createStore } from './store.js';
 import { SESSION_ID, DEFAULT_SESSION } from './config.js';
 
 // ---------- Reference data ----------
+// People rate topics (subject-matter content). Each topic lists the curriculum statements it covers.
 const TABLES = Object.keys(DATA.tables);
-const CL = Object.fromEntries(DATA.clusters.map(c => [c.n, c]));
+const TOPICS = DATA.topics;
+const TP = Object.fromEntries(TOPICS.map(t => [t.id, t]));
 const ST = DATA.statements;
-const keyOf = code => code.replace(/[^A-Za-z0-9]/g, '');
-const codeOfKey = {};
-const clusterOf = {};
-const tableOf = {};
-Object.keys(ST).forEach(c => { codeOfKey[keyOf(c)] = c; });
-DATA.clusters.forEach(c => c.codes.forEach(code => { clusterOf[code] = c.n; }));
-TABLES.forEach(t => DATA.tables[t].forEach(n => CL[n].codes.forEach(code => { tableOf[code] = t; })));
-const codesFor = t => DATA.tables[t].flatMap(n => CL[n].codes);
-const curriculumOrder = Object.keys(ST);
+const topicsFor = t => TOPICS.filter(x => x.table === t);
+const idsFor = t => topicsFor(t).map(x => x.id);
+const topicOrder = TOPICS.map(t => t.id);
 
 const OLD = [['7', 'Gr 7'], ['8', 'Gr 8'], ['9', 'Gr 9'], ['none', 'Not taught']];
 const LEVELS = [['R', 'Ready'], ['U', 'Read up'], ['L', 'Learn']];
@@ -63,8 +59,7 @@ function track(promise, el) {
 }
 
 // ---------- Aggregation ----------
-function aggregate(ratings, code) {
-  const k = keyOf(code);
+function aggregate(ratings, k) {
   const a = { n: 0, o: { '7': 0, '8': 0, '9': 0, none: 0 }, me: { R: 0, U: 0, L: 0 }, most: { R: 0, U: 0, L: 0 }, notes: [] };
   for (const r of ratings) {
     const x = r.r && r.r[k];
@@ -102,6 +97,18 @@ function codeHtml(code) {
   return `<div class="code"><span class="lo">${esc(lo)}</span><span class="chip ${type}">${esc(c)}</span></div>`;
 }
 
+// The topic heading, the content description, and the curriculum statements tucked away until opened.
+function topicHtml(t) {
+  const n = t.codes.length + t.also.length;
+  const row = code => `<li>${codeHtml(code)}<div class="stmt">${esc(ST[code].text)}</div></li>`;
+  return `<div class="topic-top"><span class="tid" aria-hidden="true">${esc(t.id)}</span><h3 class="tname">${esc(t.name)}</h3></div>
+    <p class="tdesc">${esc(t.desc)}</p>
+    <details class="stmts"><summary>Curriculum statements (${n})</summary>
+      ${t.codes.length ? `<ul class="stmt-list">${t.codes.map(row).join('')}</ul>` : ''}
+      ${t.also.length ? `<div class="also-label">${t.codes.length ? 'Also touches this topic' : 'Where this topic appears'}</div><ul class="stmt-list also">${t.also.map(row).join('')}</ul>` : ''}
+    </details>`;
+}
+
 // ---------- Start ----------
 function viewStart() {
   const last = lsGet('wtn-table');
@@ -113,8 +120,8 @@ function viewStart() {
       ${TABLES.map(t => `
         <section class="table-card" aria-labelledby="tc-${t}">
           <div class="head"><span class="letter" aria-hidden="true">${t}</span>
-            <div><h3 id="tc-${t}">Table ${t}${last === t ? ' <span class="muted">(you)</span>' : ''}</h3><div class="count">${codesFor(t).length} statements</div></div></div>
-          <ul>${DATA.tables[t].map(n => `<li>${esc(CL[n].name)}</li>`).join('')}</ul>
+            <div><h3 id="tc-${t}">Table ${t}${last === t ? ' <span class="muted">(you)</span>' : ''}</h3><div class="count">${esc(DATA.tables[t].name)} · ${topicsFor(t).length} topics</div></div></div>
+          <ul>${topicsFor(t).map(x => `<li>${esc(x.name)}</li>`).join('')}</ul>
           <div class="actions">
             <span style="font-size: 14px; font-weight: 700; color: var(--muted)">On your own</span>
             <a class="btn primary" href="#/rate/${t}">Rate my curriculum</a>
@@ -125,8 +132,8 @@ function viewStart() {
     </div>
     <h2>Four steps</h2>
     <ol class="lede">
-      <li><b>On your own · 25 min.</b> Open <b>Rate my curriculum</b> on your own laptop and rate your table’s statements.</li>
-      <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each statement.</li>
+      <li><b>On your own · 25 min.</b> Open <b>Rate my curriculum</b> on your own laptop and rate your table’s topics.</li>
+      <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each topic.</li>
       <li><b>Briefs · 15 min.</b> Write a brief for the two or three truly new items that matter most.</li>
       <li><b>With the room · 15 min.</b> Each table shares its top items.</li>
     </ol>`;
@@ -142,7 +149,7 @@ function optButtons(group, k, options, label) {
 
 async function viewRate(T) {
   lsSet('wtn-table', T);
-  const codes = codesFor(T);
+  const codes = idsFor(T);
   const seen = lsGet('wtn-howto-seen') === '1';
   app.innerHTML = `
     <div class="pagehead"><div>
@@ -152,8 +159,9 @@ async function viewRate(T) {
     </div>
     <details class="howto" ${seen ? '' : 'open'}>
       <summary>How to rate</summary>
+      <p>Each card is a topic. Rate the content of the topic, the people, events and ideas a teacher would need to know. You are not rating the wording of the curriculum. Read the short description. Open <b>Curriculum statements</b> if you want to see the exact wording.</p>
       <dl class="key">
-        <dt>Old program</dt><dd>Where the 2005 program taught this content. Tick every grade that taught it. Grade 7 was <i>Canada: Origins, Histories and Movement of Peoples</i>. Grade 8 was <i>Historical Worldviews Examined</i>. Grade 9 was <i>Canada: Opportunities and Challenges</i>.</dd>
+        <dt>Old program</dt><dd>Where the old Social Studies program taught this content. Tick every grade that taught it. Grade 7 was <i>Canada: Origins, Histories and Movement of Peoples</i>. Grade 8 was <i>Historical Worldviews Examined</i>. Grade 9 was <i>Canada: Opportunities and Challenges</i>. If only part of the topic was taught, tick the grade and name the part in your note.</dd>
         <dt>Me</dt><dd>How ready you are to teach it.</dd>
         <dt>Most teachers</dt><dd>How ready the Grade 7 teachers you work with are. Not other curriculum leads.</dd>
         <dt>Ready</dt><dd>Could teach it tomorrow.</dd>
@@ -169,20 +177,20 @@ async function viewRate(T) {
       <span class="muted" id="save-state" aria-live="polite"></span>
     </div>
     <div id="done" class="done-banner" hidden>All rated. Close your laptop and join your table. Your table will review its ratings together on one screen.</div>
-    ${DATA.tables[T].map(n => `
-      <div class="cluster-head"><h2>Cluster ${n} · ${esc(CL[n].name)}</h2><p>${esc(CL[n].covers)}</p></div>
-      ${CL[n].codes.map(code => {
-        const k = keyOf(code);
-        return `<article class="card" data-key="${k}">
-          <div class="card-top">${codeHtml(code)}<div class="stmt">${esc(ST[code].text)}</div><span class="done-tick" hidden>Rated</span></div>
-          <div class="groups">
-            ${optButtons('o', k, OLD, 'Old program')}
-            ${optButtons('me', k, LEVELS, 'Me')}
-            ${optButtons('most', k, LEVELS, 'Most teachers')}
-          </div>
-          <input class="note" type="text" maxlength="500" placeholder="Note: a resource you know, or a question" aria-label="Note for ${esc(code)}">
-        </article>`;
-      }).join('')}`).join('')}`;
+    <div class="cluster-head"><h2>${esc(DATA.tables[T].name)}</h2><p>${codes.length} topics</p></div>
+    ${topicsFor(T).map(t => {
+      const k = t.id;
+      return `<article class="card topic" data-key="${k}">
+        <span class="done-tick" hidden>Rated</span>
+        ${topicHtml(t)}
+        <div class="groups">
+          ${optButtons('o', k, OLD, 'Old program')}
+          ${optButtons('me', k, LEVELS, 'Me')}
+          ${optButtons('most', k, LEVELS, 'Most teachers')}
+        </div>
+        <input class="note" type="text" maxlength="500" placeholder="Note: a resource you know, the part that was taught, or a question" aria-label="Note for ${esc(t.name)}">
+      </article>`;
+    }).join('')}`;
 
   app.querySelector('details.howto').addEventListener('toggle', () => lsSet('wtn-howto-seen', '1'));
   const saveState = app.querySelector('#save-state');
@@ -207,17 +215,17 @@ async function viewRate(T) {
     card.querySelector('.done-tick').hidden = !complete;
   };
   const progress = () => {
-    const done = codes.filter(c => { const x = mine[keyOf(c)]; return x && x.me && x.most; }).length;
+    const done = codes.filter(c => { const x = mine[c]; return x && x.me && x.most; }).length;
     app.querySelector('#prog-label').textContent = `${done} of ${codes.length} rated`;
     app.querySelector('#prog-bar').style.width = `${Math.round(100 * done / codes.length)}%`;
     app.querySelector('#done').hidden = done < codes.length;
   };
-  codes.forEach(c => paint(keyOf(c)));
+  codes.forEach(c => paint(c));
   progress();
   unsubs.push(store.watchMine(doc => {
     const r = (doc && doc.r) || {};
     codes.forEach(c => {
-      const k = keyOf(c);
+      const k = c;
       if (inflight.get(k) || pending.has('note-' + k)) return;
       if (r[k]) mine[k] = JSON.parse(JSON.stringify(r[k]));
       paint(k);
@@ -264,7 +272,7 @@ async function viewRate(T) {
 
 // ---------- Table ----------
 function viewTable(T) {
-  const codes = codesFor(T);
+  const codes = idsFor(T);
   let order = [...codes];
   let ratings = [];
   let tableDoc = {};
@@ -274,20 +282,20 @@ function viewTable(T) {
       <h1>Table ${T} · Review your ratings</h1></div>
       <div class="row"><a class="btn" href="#/rate/${T}">Rate my curriculum</a></div>
     </div>
-    <p class="lede">Work from this one screen. Start with the statements marked <b>Split</b>. Agree on a verdict for each statement.</p>
+    <p class="lede">Work from this one screen. Start with the topics marked <b>Split</b>. Agree on a verdict for each topic. Say which part is new in the note.</p>
     <div class="toolbar">
       <span class="label" id="raters"><b>0</b> people have rated</span>
-      <button type="button" class="btn" id="sort-talk">Put split statements first</button>
-      <button type="button" class="btn" id="sort-curr">Curriculum order</button>
+      <button type="button" class="btn" id="sort-talk">Put split topics first</button>
+      <button type="button" class="btn" id="sort-curr">Topic order</button>
       <button type="button" class="btn" id="go-briefs">Go to briefs</button>
       <span class="muted" id="save-state" aria-live="polite"></span>
     </div>
     <div id="cards"></div>
     <h2>Where we disagreed</h2>
-    <textarea class="big" data-field="disagreed" maxlength="3000" aria-label="Where we disagreed" placeholder="Statements you could not agree on, and why"></textarea>
+    <textarea class="big" data-field="disagreed" maxlength="3000" aria-label="Where we disagreed" placeholder="Topics you could not agree on, and why"></textarea>
     <h2 id="briefs">Briefs</h2>
     <p><span class="step-tag">Step 3 · 15 min</span></p>
-    <p class="lede">Write one brief for each truly new item that matters most. Write for the person who will build the resource.</p>
+    <p class="lede">Write one brief for each truly new topic that matters most. Write for the person who will build the resource.</p>
     <div id="brief-list"></div>
     <button type="button" class="btn primary" id="add-brief">Add a brief</button>`;
 
@@ -296,17 +304,17 @@ function viewTable(T) {
 
   const renderCards = () => {
     cardsEl.innerHTML = order.map(code => {
-      const k = keyOf(code);
-      return `<article class="card" data-key="${k}">
-        <div class="card-top">${codeHtml(code)}<div class="stmt">${esc(ST[code].text)}</div></div>
+      const k = code;
+      return `<article class="card topic" data-key="${k}">
+        ${topicHtml(TP[code])}
         <div class="stats" data-stats></div>
         <div class="badges" data-badges></div>
         <ul class="rnotes" data-notes hidden></ul>
         <div class="verdict">
-          <div class="opts" role="group" aria-label="Verdict for ${esc(code)}">
+          <div class="opts" role="group" aria-label="Verdict for ${esc(TP[code].name)}">
             ${VERDICTS.map(([v, l]) => `<button type="button" class="opt" data-g="v" data-v="${v}" aria-pressed="false">${esc(l)}</button>`).join('')}
           </div>
-          <input type="text" class="vnote" maxlength="500" placeholder="Old unit or resource, or why it is new" aria-label="Verdict note for ${esc(code)}">
+          <input type="text" class="vnote" maxlength="500" placeholder="Which part is new, an old unit or resource, or why" aria-label="Verdict note for ${esc(TP[code].name)}">
         </div>
       </article>`;
     }).join('');
@@ -316,7 +324,7 @@ function viewTable(T) {
   const paintStats = () => {
     app.querySelector('#raters').innerHTML = `<b>${ratings.length}</b> ${ratings.length === 1 ? 'person has' : 'people have'} rated`;
     codes.forEach(code => {
-      const card = cardsEl.querySelector(`.card[data-key="${keyOf(code)}"]`);
+      const card = cardsEl.querySelector(`.card[data-key="${code}"]`);
       if (!card) return;
       const a = aggregate(ratings, code);
       card.querySelector('[data-stats]').innerHTML = `
@@ -422,11 +430,11 @@ function viewTable(T) {
     el.className = 'brief';
     el.dataset.id = b.id;
     el.innerHTML = `<h3>Brief ${i + 1}</h3>
-      <div><label for="bc-${b.id}">Statement</label>
+      <div><label for="bc-${b.id}">Topic</label>
         <select id="bc-${b.id}" data-f="code">
-          <option value="">Choose a statement</option>
-          ${codes.map(c => `<option value="${esc(c)}">${esc(c)} · ${esc(ST[c].text.slice(0, 70))}${ST[c].text.length > 70 ? '…' : ''}</option>`).join('')}
-          <option value="several">Several statements (name them below)</option>
+          <option value="">Choose a topic</option>
+          ${codes.map(c => `<option value="${esc(c)}">${esc(c)} · ${esc(TP[c].name)}</option>`).join('')}
+          <option value="several">Several topics (name them below)</option>
         </select></div>
       ${FIELDS.map(([f, label, hint, kind]) => `<div><label for="b${f}-${b.id}">${esc(label)} ${hint ? `<span class="hint">${esc(hint)}</span>` : ''}</label>
         ${kind === 'input' ? `<input id="b${f}-${b.id}" type="text" data-f="${f}" maxlength="500">` : `<textarea id="b${f}-${b.id}" data-f="${f}" maxlength="3000"></textarea>`}</div>`).join('')}`;
@@ -461,43 +469,46 @@ function viewRoom() {
     <div class="tiles" id="tiles"></div>
     <div class="export">
       <h2 style="margin-top:0">Download the data</h2>
-      <p class="muted">CSV files open in Excel. Ratings has one row per person per statement. No names are collected.</p>
+      <p class="muted">CSV files open in Excel. Ratings has one row per person per topic. Each row lists the curriculum statements in that topic. No names are collected.</p>
       <div class="row">
         <button type="button" class="btn primary" data-dl="ratings">Ratings (CSV)</button>
-        <button type="button" class="btn" data-dl="summary">Statement summary (CSV)</button>
+        <button type="button" class="btn" data-dl="summary">Topic summary (CSV)</button>
         <button type="button" class="btn" data-dl="verdicts">Table verdicts (CSV)</button>
         <button type="button" class="btn" data-dl="briefs">Briefs (CSV)</button>
         <button type="button" class="btn" data-dl="json">Everything (JSON)</button>
       </div>
     </div>
-    <h2>Statements</h2>
+    <h2>Topics</h2>
     <div class="toolbar">
       <label>Show <select class="select" id="filter">
-        <option value="all">All statements</option>
+        <option value="all">All topics</option>
         <option value="new">Table said truly or partly new</option>
         <option value="learn">Half or more said most teachers must learn it</option>
       </select></label>
       <label>Sort <select class="select" id="sort">
         <option value="learn">Most teachers must learn it</option>
-        <option value="curr">Curriculum order</option>
+        <option value="curr">Topic order</option>
       </select></label>
     </div>
     <div class="tablewrap"><table class="sum">
-      <thead><tr><th>Code</th><th>Statement</th><th>Table</th><th>Rated</th><th>Most teachers: Learn</th><th>Me: Learn</th><th>Old program</th><th>Verdict</th><th>Table note</th></tr></thead>
+      <thead><tr><th>Topic</th><th>Name</th><th>Table</th><th>Rated</th><th>Most teachers: Learn</th><th>Me: Learn</th><th>Old program</th><th>Verdict</th><th>Table note</th></tr></thead>
       <tbody id="sum-body"></tbody></table></div>
     <h2>Briefs</h2>
-    <div id="room-briefs"></div>`;
+    <div id="room-briefs"></div>
+    <h2>Skills not rated as topics</h2>
+    <p class="muted">These statements are skills that run across many topics. They have no content of their own, so no one rates them.</p>
+    <ul class="cross">${DATA.crosscutting.map(x => `<li>${codeHtml(x.code)}<div><div class="stmt">${esc(ST[x.code].text)}</div><div class="muted">${esc(x.why)}</div></div></li>`).join('')}</ul>`;
 
   const pct = x => `${Math.round(x * 100)}%`;
   const paint = () => {
     // Tiles
     app.querySelector('#tiles').innerHTML = TABLES.map(t => {
-      const cs = codesFor(t);
+      const cs = idsFor(t);
       const rs = ratings.filter(r => r.table === t);
-      const done = rs.reduce((s, r) => s + cs.filter(c => { const x = r.r && r.r[keyOf(c)]; return x && x.me && x.most; }).length, 0);
+      const done = rs.reduce((s, r) => s + cs.filter(c => { const x = r.r && r.r[c]; return x && x.me && x.most; }).length, 0);
       const possible = rs.length * cs.length;
       const v = (tables[t] && tables[t].v) || {};
-      const verdicts = cs.filter(c => v[keyOf(c)] && v[keyOf(c)].verdict).length;
+      const verdicts = cs.filter(c => v[c] && v[c].verdict).length;
       const nb = briefs.filter(b => b.table === t).length;
       return `<div class="tile"><div class="row"><span class="letter" aria-hidden="true">${t}</span><b>Table ${t}</b></div>
         <div class="num">${rs.length}</div><div class="lbl">people rating · ${possible ? pct(done / possible) : '0%'} complete</div>
@@ -506,10 +517,10 @@ function viewRoom() {
     // Summary
     const filter = app.querySelector('#filter').value;
     const sort = app.querySelector('#sort').value;
-    let rows = curriculumOrder.map(code => {
-      const t = tableOf[code];
+    let rows = topicOrder.map(code => {
+      const t = TP[code].table;
       const a = aggregate(ratings.filter(r => r.table === t), code);
-      const v = ((tables[t] && tables[t].v) || {})[keyOf(code)] || {};
+      const v = ((tables[t] && tables[t].v) || {})[code] || {};
       return { code, t, a, v };
     });
     if (filter === 'new') rows = rows.filter(r => r.v.verdict === 'new' || r.v.verdict === 'partly');
@@ -519,7 +530,7 @@ function viewRoom() {
       const old = OLD.filter(([k]) => a.o[k]).map(([k, l]) => `${l} ${a.o[k]}`).join(', ') || '<span class="muted">None ticked</span>';
       return `<tr>
         <td><b>${esc(code)}</b></td>
-        <td class="stmt-cell">${esc(ST[code].text)}</td>
+        <td class="stmt-cell"><b>${esc(TP[code].name)}</b><div class="muted">${esc([...TP[code].codes].join(', ') || 'Also in ' + TP[code].also.join(', '))}</div></td>
         <td>${t}</td>
         <td class="num">${a.n}</td>
         <td class="num">${a.mostN ? `${a.most.L} of ${a.mostN} · ${pct(a.learnShare)}` : '–'}</td>
@@ -536,7 +547,7 @@ function viewRoom() {
       return `<h3>Table ${t}</h3>
         ${dis ? `<p><b>Where we disagreed.</b> ${esc(dis)}</p>` : ''}
         ${bs.map(b => `<div class="brief">
-          <div><b>${esc(b.code || 'No statement chosen')}</b>${b.content ? ` · ${esc(b.content)}` : ''}</div>
+          <div><b>${esc(TP[b.code] ? `${b.code} · ${TP[b.code].name}` : (b.code === 'several' ? 'Several topics' : (b.code || 'No topic chosen')))}</b>${b.content ? ` · ${esc(b.content)}` : ''}</div>
           ${b.know ? `<div><b>What a teacher needs to know.</b> ${esc(b.know)}</div>` : ''}
           ${b.fits ? `<div><b>Where it fits.</b> ${esc(b.fits)}</div>` : ''}
           ${b.watch ? `<div><b>Watch for.</b> ${esc(b.watch)}</div>` : ''}
@@ -582,52 +593,53 @@ function participantIds(ratings) {
 function download(kind, ratings, tables, briefs) {
   const stamp = new Date().toISOString().slice(0, 10);
   const base = `${SESSION_ID}`;
-  const meta = code => {
-    const { lo, type } = splitCode(code);
-    const n = clusterOf[code];
-    return [lo, type, n, CL[n].name, tableOf[code]];
+  // Topic columns shared by every export. ref is the document analysis, kept for comparison with what teachers said.
+  const meta = id => {
+    const t = TP[id];
+    return [id, t.name, t.table, DATA.tables[t.table].name, t.codes.join('; '), t.also.join('; '), t.ref || ''];
   };
+  const metaHead = ['topic_id', 'topic', 'table', 'table_name', 'statements', 'also_touches', 'document_analysis'];
   if (kind === 'ratings') {
     const pid = participantIds(ratings);
-    const rows = [['session', 'participant', 'participant_table', 'code', 'outcome', 'type', 'cluster', 'cluster_name', 'statement_table', 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me', 'most_teachers', 'note', 'updated_at']];
+    const rows = [['session', 'participant', 'participant_table', ...metaHead, 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me', 'most_teachers', 'note', 'updated_at']];
     ratings.forEach(r => {
       Object.entries(r.r || {}).forEach(([k, x]) => {
-        const code = codeOfKey[k];
-        if (!code) return;
+        if (!TP[k]) return; // Ignore anything that is not a topic, such as old statement-level practice data.
         const o = x.o || [];
-        rows.push([SESSION_ID, pid[r.id] || r.id, r.table, code, ...meta(code),
+        rows.push([SESSION_ID, pid[r.id] || r.id, r.table, ...meta(k),
           o.includes('7') ? 1 : 0, o.includes('8') ? 1 : 0, o.includes('9') ? 1 : 0, o.includes('none') ? 1 : 0,
           LEVEL_LABEL[x.me] || '', LEVEL_LABEL[x.most] || '', x.note || '', tsString(r.updatedAt)]);
       });
     });
     save(`${base}-ratings-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'summary') {
-    const rows = [['code', 'outcome', 'type', 'cluster', 'cluster_name', 'table', 'statement', 'raters', 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me_ready', 'me_read_up', 'me_learn', 'most_ready', 'most_read_up', 'most_learn', 'most_learn_share', 'verdict', 'verdict_note']];
-    curriculumOrder.forEach(code => {
-      const t = tableOf[code];
-      const a = aggregate(ratings.filter(r => r.table === t), code);
-      const v = ((tables[t] && tables[t].v) || {})[keyOf(code)] || {};
-      rows.push([code, ...meta(code).slice(0, 4), t, ST[code].text, a.n, a.o['7'], a.o['8'], a.o['9'], a.o.none,
+    const rows = [[...metaHead, 'description', 'raters', 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me_ready', 'me_read_up', 'me_learn', 'most_ready', 'most_read_up', 'most_learn', 'most_learn_share', 'verdict', 'verdict_note', 'rater_notes']];
+    topicOrder.forEach(id => {
+      const t = TP[id].table;
+      const a = aggregate(ratings.filter(r => r.table === t), id);
+      const v = ((tables[t] && tables[t].v) || {})[id] || {};
+      rows.push([...meta(id), TP[id].desc, a.n, a.o['7'], a.o['8'], a.o['9'], a.o.none,
         a.me.R, a.me.U, a.me.L, a.most.R, a.most.U, a.most.L, a.mostN ? a.learnShare.toFixed(2) : '',
-        VERDICT_LABEL[v.verdict] || '', v.note || '']);
+        VERDICT_LABEL[v.verdict] || '', v.note || '', a.notes.join(' | ')]);
     });
+    DATA.crosscutting.forEach(x => rows.push(['', 'Skill, not rated', '', '', x.code, '', '', x.why]));
     save(`${base}-summary-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'verdicts') {
-    const rows = [['table', 'code', 'verdict', 'note']];
+    const rows = [['table', 'topic_id', 'topic', 'verdict', 'note']];
     TABLES.forEach(t => {
       const v = (tables[t] && tables[t].v) || {};
-      codesFor(t).forEach(code => { const x = v[keyOf(code)] || {}; rows.push([t, code, VERDICT_LABEL[x.verdict] || '', x.note || '']); });
-      if (tables[t] && tables[t].disagreed) rows.push([t, 'Where we disagreed', '', tables[t].disagreed]);
+      idsFor(t).forEach(id => { const x = v[id] || {}; rows.push([t, id, TP[id].name, VERDICT_LABEL[x.verdict] || '', x.note || '']); });
+      if (tables[t] && tables[t].disagreed) rows.push([t, '', 'Where we disagreed', '', tables[t].disagreed]);
     });
     save(`${base}-verdicts-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'briefs') {
-    const rows = [['table', 'code', 'content', 'need_to_know', 'where_it_fits', 'watch_for', 'sources', 'created_at', 'updated_at']];
-    briefs.forEach(b => rows.push([b.table, b.code, b.content, b.know, b.fits, b.watch, b.sources, tsString(b.createdAt), tsString(b.updatedAt)]));
+    const rows = [['table', 'topic_id', 'topic', 'content', 'need_to_know', 'where_it_fits', 'watch_for', 'sources', 'created_at', 'updated_at']];
+    briefs.forEach(b => rows.push([b.table, b.code, TP[b.code] ? TP[b.code].name : (b.code === 'several' ? 'Several topics' : ''), b.content, b.know, b.fits, b.watch, b.sources, tsString(b.createdAt), tsString(b.updatedAt)]));
     save(`${base}-briefs-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else {
     const norm = o => JSON.parse(JSON.stringify(o, (k, v) => (v && typeof v.toDate === 'function') ? v.toDate().toISOString() : v));
     const pid = participantIds(ratings);
-    const out = { session: SESSION_ID, exportedAt: new Date().toISOString(), ratings: norm(ratings.map(r => ({ ...r, id: pid[r.id] || r.id }))), tables: norm(tables), briefs: norm(briefs) };
+    const out = { session: SESSION_ID, exportedAt: new Date().toISOString(), topics: TOPICS, crosscutting: DATA.crosscutting, ratings: norm(ratings.map(r => ({ ...r, id: pid[r.id] || r.id }))), tables: norm(tables), briefs: norm(briefs) };
     save(`${base}-all-${stamp}.json`, JSON.stringify(out, null, 2), 'application/json');
   }
 }
