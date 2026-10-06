@@ -107,7 +107,7 @@ function viewStart() {
   const last = lsGet('wtn-table');
   app.innerHTML = `
     <h1>Find what is truly new in Grade 7</h1>
-    <div class="emph">We will build teacher resources for the content that is truly new. Content the old Grade 7, 8 or 9 taught already has Division resources. Your ratings show us where the gaps are.</div>
+    <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <h2>Choose your table</h2>
     <div class="table-grid">
       ${TABLES.map(t => `
@@ -116,8 +116,10 @@ function viewStart() {
             <div><h3 id="tc-${t}">Table ${t}${last === t ? ' <span class="muted">(you)</span>' : ''}</h3><div class="count">${codesFor(t).length} statements</div></div></div>
           <ul>${DATA.tables[t].map(n => `<li>${esc(CL[n].name)}</li>`).join('')}</ul>
           <div class="actions">
-            <a class="btn primary" href="#/rate/${t}">Rate my statements</a>
-            <a class="btn" href="#/table/${t}">Open the table screen</a>
+            <span style="font-size: 14px; font-weight: 700; color: var(--muted)">On your own</span>
+            <a class="btn primary" href="#/rate/${t}">Rate my curriculum</a>
+            <span style="font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 6px">As a group</span>
+            <a class="btn" href="#/table/${t}">Review your ratings</a>
           </div>
         </section>`).join('')}
     </div>
