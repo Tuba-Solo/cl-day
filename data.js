@@ -1,205 +1,620 @@
-// Grade 7 Social Studies statements, verbatim from Alberta Education Draft Social Studies 7 (June 2026).
+// Grade 7 Social Studies, grouped into subject-matter topics for the Oct 8 gap analysis.
+// Statements are verbatim from Alberta Education Draft Social Studies 7 (June 2026).
+// Each statement has one home topic (codes). 'also' lists statements that partly touch a topic.
+// 'ref' is the Oct 2026 document analysis of old-program coverage. It is used in exports only, never shown to raters.
 export const DATA = {
  "session": "cl-2026-10-08",
  "tables": {
-  "A": [
-   1,
-   2
-  ],
-  "B": [
-   3,
-   4
-  ],
-  "C": [
-   5,
-   6
-  ],
-  "D": [
-   7,
-   8
-  ],
-  "E": [
-   9,
-   10
-  ]
+  "A": {
+   "name": "Confederation and the system of government"
+  },
+  "B": {
+   "name": "Expansion, First Nations, Métis and the railway"
+  },
+  "C": {
+   "name": "Settlement and exclusion"
+  },
+  "D": {
+   "name": "Policing, the military and sovereignty"
+  },
+  "E": {
+   "name": "The economy"
+  }
  },
- "clusters": [
+ "topics": [
   {
-   "n": 1,
-   "name": "Road to Confederation",
-   "covers": "Why the colonies united, the conferences and the first four provinces.",
+   "id": "A1",
+   "table": "A",
+   "name": "British North America before 1867",
+   "desc": "Britain and France fought over North America. Britain took Acadia in 1713, expelled the Acadians from 1755, and gained New France in 1763. By 1864 British North America was the Province of Canada (Canada West and East), Nova Scotia, New Brunswick, Prince Edward Island, Newfoundland, British Columbia, Vancouver Island, Rupert's Land and the North-Western Territory.",
    "codes": [
     "LO.1 K.1",
-    "LO.1 K.2",
+    "LO.1 K.2"
+   ],
+   "also": [
+    "LO.1 K.9"
+   ],
+   "ref": "Familiar"
+  },
+  {
+   "id": "A2",
+   "table": "A",
+   "name": "The American threat and the case for Confederation",
+   "desc": "During the American Civil War (1861 to 1865), the Trent Affair and the St. Albans Raid raised fears of American invasion. In 1866 the United States ended the Reciprocity Treaty and Irish-American Fenians raided the colonies. Supporters argued that a united Canada with a strong central government could better defend itself.",
+   "codes": [
     "LO.1 K.3",
+    "LO.1 SP.2"
+   ],
+   "also": [],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "A3",
+   "table": "A",
+   "name": "The Confederation conferences and the BNA Act, 1864 to 1867",
+   "desc": "The Charlottetown Conference (September 1864) began as talks on Maritime union. The Quebec Conference (October 1864) wrote the 72 Resolutions on Parliament, representation and the division of powers, and the London Conference (1866 to 1867) revised them into the British North America Act. On July 1, 1867 it united Nova Scotia, New Brunswick, Ontario and Quebec as the Dominion of Canada.",
+   "codes": [
     "LO.1 K.4",
     "LO.1 K.5",
-    "LO.1 SP.2",
     "LO.1 SP.6",
     "LO.4 K.1",
     "LO.4 K.2",
     "LO.4 K.3",
     "LO.4 K.4",
+    "LO.4 K.5",
     "LO.4 K.15",
     "LO.4 SP.1"
-   ]
+   ],
+   "also": [],
+   "ref": "Partly familiar"
   },
   {
-   "n": 2,
-   "name": "Designing the government",
-   "covers": "What the British North America Act set up. Branches, Parliament, federalism.",
+   "id": "A4",
+   "table": "A",
+   "name": "The Crown, Governor General, Prime Minister and Cabinet",
+   "desc": "The BNA Act vests executive power in the monarch, exercised by the Governor General on the advice of the Privy Council, in practice the Cabinet. The Prime Minister leads the party that holds the confidence of the House of Commons and recommends ministers to run departments. Parliament and the courts are the other two branches.",
    "codes": [
-    "LO.4 K.5",
     "LO.4 K.6",
     "LO.4 K.7",
+    "LO.4 K.12",
+    "LO.4 SP.4"
+   ],
+   "also": [
+    "LO.4 K.5"
+   ],
+   "ref": "From old Grade 9"
+  },
+  {
+   "id": "A5",
+   "table": "A",
+   "name": "The House of Commons and the Senate",
+   "desc": "Parliament has two chambers. The elected House of Commons is the main law-making body, with one Member of Parliament for each riding and seats based on population. The appointed Senate gives bills \"sober second thought\" and was built on equal regional seats, and senators are appointed by the Governor General on the Prime Minister's advice.",
+   "codes": [
     "LO.4 K.8",
     "LO.4 K.9",
-    "LO.4 K.10",
+    "LO.4 K.10"
+   ],
+   "also": [
+    "LO.4 K.6",
+    "LO.4 SP.4"
+   ],
+   "ref": "From old Grade 9"
+  },
+  {
+   "id": "A6",
+   "table": "A",
+   "name": "The courts and the Supreme Court of Canada",
+   "desc": "Under the BNA Act, provinces set up and run their courts, and the Governor General appoints provincial superior court judges. Section 101 let Parliament create a general court of appeal, which became the Supreme Court of Canada in 1875. Some appeals still went to Britain's Judicial Committee of the Privy Council until 1949.",
+   "codes": [
     "LO.4 K.11",
-    "LO.4 K.12",
-    "LO.4 K.13",
+    "LO.4 SP.5"
+   ],
+   "also": [
+    "LO.4 K.6",
+    "LO.4 SP.4"
+   ],
+   "ref": "From old Grade 9"
+  },
+  {
+   "id": "A7",
+   "table": "A",
+   "name": "Representative government, responsible government and representation by population",
+   "desc": "Representative government means voters elect the assembly that makes laws. Responsible government means the Cabinet must keep the support of that elected assembly, which Nova Scotia and the Province of Canada won in 1848. Representation by population, championed by George Brown, set Commons seats by population in 1867, while the Senate gave regions equal seats.",
+   "codes": [
+    "LO.4 K.13"
+   ],
+   "also": [
+    "LO.4 K.2",
+    "LO.4 K.9",
+    "LO.4 K.12"
+   ],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "A8",
+   "table": "A",
+   "name": "Federalism and the division of powers",
+   "desc": "Sections 91 to 95 of the BNA Act divide law-making power. Parliament got defence, currency, banking, criminal law, \"Indians, and Lands reserved for the Indians\", and anything not given to the provinces. Provinces got education, hospitals, municipal institutions, property and civil rights, and the administration of justice, and immigration and agriculture are shared.",
+   "codes": [
     "LO.4 K.14",
     "LO.4 SP.2",
-    "LO.4 SP.3",
-    "LO.4 SP.4",
-    "LO.4 SP.5"
-   ]
-  },
-  {
-   "n": 3,
-   "name": "First Nations, Métis and the expanding state",
-   "covers": "Red River, scrip, the Northwest Resistance, the numbered treaties, the Indian Act.",
-   "codes": [
+    "LO.4 SP.3"
+   ],
+   "also": [
     "LO.1 K.6",
-    "LO.1 K.8",
-    "LO.1 K.10",
-    "LO.1 K.11",
-    "LO.1 K.13",
-    "LO.1 K.14",
-    "LO.1 K.15",
-    "LO.1 SP.4",
-    "LO.1 SP.7"
-   ]
+    "LO.3 K.8",
+    "LO.4 K.2",
+    "LO.5 K.11"
+   ],
+   "ref": "From old Grade 9"
   },
   {
-   "n": 4,
-   "name": "Expansion, the map and the railway",
-   "covers": "Why Canada pushed west, Rupert’s Land, new provinces, the railway.",
+   "id": "B1",
+   "table": "B",
+   "name": "Rupert's Land and the push west",
+   "desc": "In 1869 the Hudson's Bay Company surrendered Rupert's Land, held since 1670, for £300,000 plus land around its posts and a twentieth of the fertile belt. The transfer, with the North-Western Territory, took effect July 15, 1870. Canada wanted to expand west and feared American annexation. Its First Nations and Métis residents were not consulted.",
    "codes": [
     "LO.1 K.7",
     "LO.1 K.9",
-    "LO.1 K.12",
-    "LO.1 K.16",
-    "LO.1 K.17",
-    "LO.1 K.19",
-    "LO.1 SP.1",
     "LO.1 SP.3",
-    "LO.1 SP.5",
-    "LO.1 SP.9"
-   ]
+    "LO.1 SP.5"
+   ],
+   "also": [
+    "LO.1 K.2",
+    "LO.1 SP.7"
+   ],
+   "ref": "Familiar"
   },
   {
-   "n": 5,
-   "name": "Settling the West",
-   "covers": "Recruiting settlers, the Dominion Lands Act, prairie farming.",
+   "id": "B2",
+   "table": "B",
+   "name": "New provinces and territories, 1870 to 1999",
+   "desc": "Manitoba (1870) and the North-West Territories were created from the lands bought from the Hudson's Bay Company. British Columbia (1871) and Prince Edward Island (1873) joined. Yukon (1898), Alberta and Saskatchewan (1905) and Nunavut (1999) were later carved from the territories. Newfoundland joined in 1949 and became Newfoundland and Labrador in 2001.",
+   "codes": [
+    "LO.1 K.12",
+    "LO.1 K.19",
+    "LO.1 SP.1"
+   ],
+   "also": [
+    "LO.1 K.2"
+   ],
+   "ref": "Familiar"
+  },
+  {
+   "id": "B3",
+   "table": "B",
+   "name": "The Red River Resistance and Riel's provisional government",
+   "desc": "In 1869 Canada sent surveyors to Red River before the land transfer. Métis led by Louis Riel stopped the survey, turned back incoming governor William McDougall, took Upper Fort Garry and set up a provisional government in December. Its talks with Ottawa produced the Manitoba Act (1870). After Thomas Scott's execution, Ottawa sent troops west. The curriculum calls these events the Red River Conflict.",
+   "codes": [
+    "LO.1 K.8",
+    "LO.1 SP.4"
+   ],
+   "also": [
+    "LO.1 SP.7"
+   ],
+   "ref": "Familiar"
+  },
+  {
+   "id": "B4",
+   "table": "B",
+   "name": "Métis scrip and land claims",
+   "desc": "The Manitoba Act (1870) promised 1.4 million acres to Red River Métis children. Scrip was a certificate given to an individual Métis person, exchangeable for land or money. Commissions issued it across the North-West from 1885 into the 1920s. Many Métis sold scrip to speculators for far less than the land was worth.",
+   "codes": [
+    "LO.1 K.10"
+   ],
+   "also": [
+    "LO.1 SP.7"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "B5",
+   "table": "B",
+   "name": "The Northwest Resistance and the trial of Louis Riel",
+   "desc": "In March 1885 Métis at Batoche, led by Louis Riel and Gabriel Dumont, formed a provisional government. Métis and Cree forces fought Canadian forces from Duck Lake (March 26) to Batoche (May 9 to 12). Riel was convicted of high treason in Regina and hanged November 16. Eight First Nations men were hanged at Battleford.",
+   "codes": [
+    "LO.1 K.11"
+   ],
+   "also": [
+    "LO.1 SP.7",
+    "LO.2 K.2"
+   ],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "B6",
+   "table": "B",
+   "name": "The numbered treaties",
+   "desc": "The Crown and First Nations signed Treaties 1 to 11 between 1871 and 1921. Most of Alberta lies in Treaties 6 (1876), 7 (1877) and 8 (1899). The written texts record land surrender and promise reserves, annual payments, schools and hunting and fishing rights. Many First Nations understood them as agreements to share the land.",
+   "codes": [
+    "LO.1 K.13",
+    "LO.1 K.14",
+    "LO.1 SP.7"
+   ],
+   "also": [],
+   "ref": "Familiar"
+  },
+  {
+   "id": "B7",
+   "table": "B",
+   "name": "First Nations under federal authority and the Indian Act",
+   "desc": "Section 91(24) of the British North America Act (1867) gave Parliament authority over \"Indians, and Lands reserved for the Indians.\" The Indian Act (1876) combined earlier laws. It defined Indian status, set rules for band councils and Crown-held reserves, and was later amended to ban ceremonies like the potlatch. It remains in force.",
+   "codes": [
+    "LO.1 K.6",
+    "LO.1 K.15"
+   ],
+   "also": [
+    "LO.1 SP.7"
+   ],
+   "ref": "From old Grade 9"
+  },
+  {
+   "id": "B8",
+   "table": "B",
+   "name": "The Canadian Pacific Railway",
+   "desc": "The Canadian Pacific Railway, promised to British Columbia in 1871, was built with $25 million and 25 million acres from Ottawa. More than 15,000 Chinese labourers worked on it. The last spike was driven at Craigellachie, BC, on November 7, 1885. It carried settlers west and Prairie grain east.",
+   "codes": [
+    "LO.3 K.5"
+   ],
+   "also": [
+    "LO.1 K.16",
+    "LO.1 K.17",
+    "LO.3 K.4"
+   ],
+   "ref": "Familiar"
+  },
+  {
+   "id": "C1",
+   "table": "C",
+   "name": "Recruiting immigrants to settle the West",
+   "desc": "The federal government promoted western settlement partly to strengthen its hold on the West against American expansion. From 1896 Interior Minister Clifford Sifton advertised free homesteads in the \"Last Best West\" across Britain, the United States and east-central Europe. He wanted farmers and discouraged southern Europeans, Black people, East Asians and British city dwellers.",
    "codes": [
     "LO.1 K.18",
     "LO.1 SP.8",
-    "LO.5 K.2",
-    "LO.5 K.3",
-    "LO.5 K.4",
-    "LO.5 K.5",
-    "LO.5 SP.2"
-   ]
+    "LO.5 K.2"
+   ],
+   "also": [
+    "LO.1 K.16"
+   ],
+   "ref": "Familiar"
   },
   {
-   "n": 6,
-   "name": "Exclusion and rights",
-   "covers": "Discrimination, immigration restrictions, the 1907 riots, the Komagata Maru, school rights.",
+   "id": "C2",
+   "table": "C",
+   "name": "The Dominion Lands Act and homesteading",
+   "desc": "The Dominion Lands Act of 1872 offered a 160-acre quarter-section homestead for a $10 fee. A settler gained ownership after living on the land and farming it for three years. Men could claim one, and from 1876 so could women who were the sole head of a family.",
+   "codes": [
+    "LO.5 K.3",
+    "LO.5 SP.2"
+   ],
+   "also": [
+    "LO.1 K.16"
+   ],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "C3",
+   "table": "C",
+   "name": "Who settled the Prairies, and the farms and towns they built",
+   "desc": "Settlers came from Britain, the United States, Quebec and east-central Europe. They broke land, grew wheat and built towns, churches and businesses. Ukrainian immigration began in 1891, and by 1914 about 170,000 Ukrainians from Galicia and Bukovina had come, many in block settlements in the treed parkland such as Edna-Star in east-central Alberta.",
+   "codes": [
+    "LO.1 K.17",
+    "LO.5 K.4",
+    "LO.5 K.5"
+   ],
+   "also": [
+    "LO.1 K.19"
+   ],
+   "ref": "Familiar"
+  },
+  {
+   "id": "C4",
+   "table": "C",
+   "name": "Chinese head tax (1885) and the 1923 Chinese Immigration Act",
+   "desc": "In 1885 Parliament passed a Chinese Immigration Act with a $50 head tax on Chinese immigrants, once Chinese labour was no longer needed on the CPR. The tax rose to $100 and then $500 in 1903. A separate 1923 Chinese Immigration Act, often called the Exclusion Act, banned almost all Chinese immigration until 1947.",
+   "codes": [
+    "LO.5 K.6"
+   ],
+   "also": [
+    "LO.5 SP.4"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "C5",
+   "table": "C",
+   "name": "The Continuous Journey Regulation and the Komagata Maru",
+   "desc": "A 1908 regulation required immigrants to arrive by continuous journey from their home country, which blocked South Asians because no ship sailed directly from India. In 1914 Gurdit Singh's chartered Komagata Maru reached Vancouver with 376 passengers, mostly Sikhs. Only about 20 returning residents landed, and the navy's HMCS Rainbow escorted it out.",
+   "codes": [
+    "LO.5 K.10",
+    "LO.5 SP.3"
+   ],
+   "also": [
+    "LO.5 K.6",
+    "LO.5 SP.4"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "C6",
+   "table": "C",
+   "name": "The 1907 Anti-Asian Riots in Vancouver",
+   "desc": "On September 7, 1907, days after an anti-Asian riot in Bellingham, Washington, an Asiatic Exclusion League parade in Vancouver became a riot. A white mob damaged Chinatown and attacked the Powell Street Japanese district, where residents fought back. In 1908 Japan agreed to limit labourers and servants emigrating to Canada to 400 a year.",
+   "codes": [
+    "LO.5 K.7",
+    "LO.5 K.8"
+   ],
+   "also": [
+    "LO.5 SP.3"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "C7",
+   "table": "C",
+   "name": "Black settlers from Oklahoma and the 1911 order to bar Black immigrants",
+   "desc": "About 1,500 Black Americans, mostly from Oklahoma, settled the Prairies from 1905 to 1912, founding places like Amber Valley, Alberta. Ottawa discouraged them through agents and border medical exams, and Edmonton groups petitioned against them. Cabinet approved a one-year ban, P.C. 1911-1324, in August 1911, never invoked it, and repealed it that October.",
+   "codes": [
+    "LO.5 K.9"
+   ],
+   "also": [
+    "LO.5 SP.4"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "C8",
+   "table": "C",
+   "name": "The Manitoba Schools Question and Ontario's Regulation 17",
+   "desc": "In 1890 Manitoba abolished French as an official language and replaced its Catholic and Protestant school districts with a single public system. The issue shaped the 1896 federal election and led to the Laurier-Greenway Compromise. Ontario's Regulation 17 (1912) limited French instruction to the first two years of school until 1927.",
+   "codes": [
+    "LO.5 K.11"
+   ],
+   "also": [],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "C9",
+   "table": "C",
+   "name": "Discrimination, and why Canada restricted immigration",
+   "desc": "Discrimination means treating a person or group differently, with a negative effect, because of characteristics such as race, religion, ancestry or place of origin. Alberta's Human Rights Commission says it can happen regardless of intent. This topic also covers the reasons given at the time for restricting immigration, such as labour competition and claims that some groups would never assimilate.",
    "codes": [
     "LO.5 K.1",
-    "LO.5 K.6",
-    "LO.5 K.7",
-    "LO.5 K.8",
-    "LO.5 K.9",
-    "LO.5 K.10",
-    "LO.5 K.11",
     "LO.5 SP.1",
-    "LO.5 SP.3",
     "LO.5 SP.4",
-    "LO.5 SP.5",
-    "LO.5 SP.6",
-    "LO.5 SP.7"
-   ]
+    "LO.5 SP.5"
+   ],
+   "also": [],
+   "ref": "Partly familiar"
   },
   {
-   "n": 7,
-   "name": "Policing and the early military",
-   "covers": "The NWMP and RCMP, the Militia Acts, the navy, the Boer War.",
+   "id": "D1",
+   "table": "D",
+   "name": "The North-West Mounted Police and the RCMP",
+   "desc": "Parliament created the North-West Mounted Police in 1873 to assert federal authority in the North-West Territories and stop the whisky trade. It became the Royal North-West Mounted Police in 1904 and merged with the Dominion Police to form the RCMP in 1920. Today the RCMP does federal policing and contract policing for provinces and municipalities.",
    "codes": [
     "LO.2 K.1",
     "LO.2 K.2",
     "LO.2 K.3",
+    "LO.2 SP.1"
+   ],
+   "also": [],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "D2",
+   "table": "D",
+   "name": "Building a Canadian military, from the Militia Acts to the navy",
+   "desc": "The Province of Canada's Militia Act of 1855 created a trained, paid Active Militia. Britain withdrew its troops in 1871 except at Halifax and Esquimalt, and Canada formed its first permanent units. The 1904 Militia Act added a Militia Council and chief of the General Staff, and the 1910 Naval Service Act created Canada's navy.",
+   "codes": [
     "LO.2 K.4",
-    "LO.2 SP.1",
     "LO.2 SP.2",
     "LO.2 SP.3",
-    "LO.2 SP.4",
-    "LO.2 SP.5"
-   ]
+    "LO.2 SP.4"
+   ],
+   "also": [
+    "LO.2 K.1"
+   ],
+   "ref": "New"
   },
   {
-   "n": 8,
-   "name": "The First World War and sovereignty",
-   "covers": "Battles, diverse communities, remembrance, the Statute of Westminster.",
+   "id": "D3",
+   "table": "D",
+   "name": "The Boer War and Paardeberg",
+   "desc": "The South African (Boer) War of 1899 to 1902 pitted the British Empire against the Boers, Dutch-descended settlers in South Africa. Laurier sent volunteers as a compromise between English-Canadian support and French-Canadian opposition from Henri Bourassa, and more than 7,000 Canadians served. At Paardeberg in February 1900 a Canadian attack helped force a Boer surrender.",
+   "codes": [
+    "LO.2 SP.5"
+   ],
+   "also": [
+    "LO.2 K.4"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "D4",
+   "table": "D",
+   "name": "Canada enters the First World War, the CEF and the Canadian Corps",
+   "desc": "When Britain declared war on August 4, 1914, Canada was automatically at war, though Ottawa decided its contribution. About 619,000 Canadians enlisted in the Canadian Expeditionary Force, whose divisions formed the Canadian Corps in 1915. The Corps grew to four divisions that usually fought together, and Arthur Currie became its first Canadian commander in 1917.",
    "codes": [
     "LO.2 K.5",
-    "LO.2 K.6",
-    "LO.2 K.7",
-    "LO.2 K.8",
-    "LO.2 K.9",
-    "LO.2 SP.6",
-    "LO.2 SP.7",
-    "LO.2 SP.8",
-    "LO.2 SP.9",
-    "LO.2 SP.10",
-    "LO.2 SP.11"
-   ]
+    "LO.2 SP.6"
+   ],
+   "also": [],
+   "ref": "New"
   },
   {
-   "n": 9,
-   "name": "The National Policy and regional economies",
-   "covers": "Growth after Confederation, the National Policy, the railway, resource economies.",
+   "id": "D5",
+   "table": "D",
+   "name": "Canadian Corps battles at Ypres, Vimy Ridge and Passchendaele",
+   "desc": "Canadians faced chlorine gas at the Second Battle of Ypres in April 1915. All four Canadian divisions attacked together to take Vimy Ridge in April 1917. Passchendaele, also called the Third Battle of Ypres, cost about 16,000 Canadian casualties late in 1917.",
+   "codes": [
+    "LO.2 K.6",
+    "LO.2 SP.8",
+    "LO.2 SP.11"
+   ],
+   "also": [],
+   "ref": "New"
+  },
+  {
+   "id": "D6",
+   "table": "D",
+   "name": "The Newfoundland Regiment at Gallipoli and Beaumont-Hamel",
+   "desc": "Newfoundland was a separate British dominion that joined Canada only in 1949. Its Newfoundland Regiment landed at Suvla Bay, Gallipoli, in September 1915. At Beaumont-Hamel on July 1, 1916, only 68 of about 800 men who attacked answered roll call the next day.",
+   "codes": [],
+   "also": [
+    "LO.2 K.6",
+    "LO.2 SP.11"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "D7",
+   "table": "D",
+   "name": "Canada's diverse communities in the First World War",
+   "desc": "No. 2 Construction Battalion, formed in 1916 after Black volunteers were turned away, was a segregated non-combat unit that served with the Forestry Corps in France. More than 4,000 First Nations soldiers served, including Francis Pegahmagabow, and about ten Sikh Canadians, including Buckam Singh. French Canadians served in the 22nd Battalion, today's Royal 22e Régiment.",
+   "codes": [
+    "LO.2 K.7"
+   ],
+   "also": [],
+   "ref": "New"
+  },
+  {
+   "id": "D8",
+   "table": "D",
+   "name": "Remembrance, commemoration and war memorials",
+   "desc": "Armistice Day was first marked on November 11, 1919, and Parliament renamed it Remembrance Day in 1931. Indigenous Veterans Day, November 8, honours First Nations, Inuit and Métis veterans. The Newfoundland National War Memorial in St. John's was unveiled on July 1, 1924, and the National War Memorial in Ottawa in 1939.",
+   "codes": [
+    "LO.2 K.8",
+    "LO.2 SP.7",
+    "LO.2 SP.10"
+   ],
+   "also": [],
+   "ref": "New"
+  },
+  {
+   "id": "D9",
+   "table": "D",
+   "name": "The Statute of Westminster and sovereignty",
+   "desc": "The British Parliament passed the Statute of Westminster on December 11, 1931. It gave Canada and the other dominions legislative equality with Britain, enacting the 1926 Balfour Report's finding that they were equal in status. Canada was already acting on its own abroad, at Chanak in 1922 and with the Halibut Treaty in 1923.",
+   "codes": [
+    "LO.2 K.9",
+    "LO.2 SP.9"
+   ],
+   "also": [
+    "LO.2 K.5"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "E1",
+   "table": "E",
+   "name": "Sir John A. Macdonald and the National Policy",
+   "desc": "Sir John A. Macdonald was prime minister 1867 to 1873 and 1878 to 1891. His National Policy of 1879 raised tariffs on foreign manufactured goods to protect Canadian manufacturers, alongside the Canadian Pacific Railway and western settlement. Westerners resented the tariffs, and his record on First Nations, residential schools and Chinese immigrants is debated.",
+   "codes": [
+    "LO.1 K.16",
+    "LO.3 K.3",
+    "LO.3 K.4",
+    "LO.3 SP.2",
+    "LO.3 SP.3"
+   ],
+   "also": [],
+   "ref": "Familiar"
+  },
+  {
+   "id": "E2",
+   "table": "E",
+   "name": "Economic growth after Confederation and Canada's regional economies",
+   "desc": "Rupert's Land became part of Canada in 1870, and the Canadian Pacific Railway, finished in 1885, let Prairie grain reach export markets. A wheat boom followed from the late 1890s, helped by Marquis wheat from 1909, while tariffs protected manufacturers in central Canada. Alberta's oil and gas began at Turner Valley in 1914, and British Columbia relied on lumber, fishing and mining.",
    "codes": [
     "LO.3 K.1",
     "LO.3 K.2",
-    "LO.3 K.3",
-    "LO.3 K.4",
-    "LO.3 K.5",
     "LO.3 K.9",
     "LO.3 SP.1",
-    "LO.3 SP.2",
-    "LO.3 SP.3",
     "LO.3 SP.7"
-   ]
+   ],
+   "also": [],
+   "ref": "Partly familiar"
   },
   {
-   "n": 10,
-   "name": "Trade, GDP and banking",
-   "covers": "Free trade, GDP, equalization, banks, the Bank of Canada.",
+   "id": "E3",
+   "table": "E",
+   "name": "Tariffs and free trade",
+   "desc": "A tariff is a tax on imported goods, collected at the border from the importer. Free trade agreements remove tariffs between member countries. Canada moved between the 1854 Reciprocity Treaty, the 1879 National Policy tariffs, the reciprocity deal rejected in the 1911 election, the 1989 Canada-US Free Trade Agreement, NAFTA (1994) and CUSMA (2020).",
    "codes": [
     "LO.3 K.6",
+    "LO.3 SP.4"
+   ],
+   "also": [
+    "LO.3 K.3"
+   ],
+   "ref": "Partly familiar"
+  },
+  {
+   "id": "E4",
+   "table": "E",
+   "name": "Gross domestic product (GDP)",
+   "desc": "Gross domestic product (GDP) is the total value of goods and services produced in a country, usually over one year. It is often totalled as household spending, business investment and government spending, plus exports minus imports. GDP leaves out unpaid work and the underground economy, and Canada first published official national accounts in 1946.",
+   "codes": [
     "LO.3 K.7",
-    "LO.3 K.8",
+    "LO.3 SP.5"
+   ],
+   "also": [],
+   "ref": "New"
+  },
+  {
+   "id": "E5",
+   "table": "E",
+   "name": "What banks do, and how banking and GDP affect each other",
+   "desc": "Chartered banks accept deposits and lend to households and businesses, linking savers and borrowers. Loans pay for homes, equipment and new businesses, and that spending and investment is counted in GDP. Interest rates connect the two, since lower rates encourage borrowing and spending and higher rates slow them.",
+   "codes": [
     "LO.3 K.10",
     "LO.3 K.11",
+    "LO.3 SP.8"
+   ],
+   "also": [
+    "LO.3 K.7"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "E6",
+   "table": "E",
+   "name": "The Bank of Canada",
+   "desc": "Created in 1934 during the Great Depression, the Bank of Canada opened in 1935, replacing the Bank of Montreal as government banker. It sets the policy interest rate to keep inflation low, issues bank notes and acts as the bank for banks. A separate agency, the Office of the Superintendent of Financial Institutions, regulates banks.",
+   "codes": [
     "LO.3 K.12",
-    "LO.3 SP.4",
-    "LO.3 SP.5",
-    "LO.3 SP.6",
-    "LO.3 SP.8",
     "LO.3 SP.9"
-   ]
+   ],
+   "also": [
+    "LO.3 K.11"
+   ],
+   "ref": "New"
+  },
+  {
+   "id": "E7",
+   "table": "E",
+   "name": "Equalization and regional support",
+   "desc": "Equalization, begun in 1957, is a federal payment to provinces with less ability to raise revenue so they can offer reasonably comparable public services at reasonably comparable tax levels. Ottawa pays it from general federal revenues, provinces do not pay in, and recipients spend it as they choose. Its principle entered the Constitution in 1982.",
+   "codes": [
+    "LO.3 K.8",
+    "LO.3 SP.6"
+   ],
+   "also": [],
+   "ref": "New"
+  }
+ ],
+ "crosscutting": [
+  {
+   "code": "LO.1 SP.9",
+   "why": "Asks students to pull together government decisions from across the whole outcome. It has no content of its own."
+  },
+  {
+   "code": "LO.5 SP.6",
+   "why": "A skill, judging whether policies were fair to different groups. It applies to every exclusion and settlement topic."
+  },
+  {
+   "code": "LO.5 SP.7",
+   "why": "A skill, telling fact from opinion in historical accounts. It applies to any source on riots or immigration policy."
   }
  ],
  "statements": {
