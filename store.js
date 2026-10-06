@@ -50,6 +50,7 @@ function makeDemoStore() {
     async init() { return uid; },
     uid: () => uid,
     async getMine() { return db.ratings[uid] || null; },
+    watchMine(cb) { return watch(() => cb(db.ratings[uid] || null)); },
     async saveRating(table, key, val) {
       db.ratings[uid] = deepMerge(db.ratings[uid] || {}, { table, updatedAt: now(), r: { [key]: val } });
       commit();
@@ -129,6 +130,9 @@ async function makeFirebaseStore() {
         const s = await fb.getDoc(fb.doc(ratingsCol(), uid));
         return s.exists() ? s.data() : null;
       } catch { return null; }
+    },
+    watchMine(cb) {
+      return fb.onSnapshot(fb.doc(ratingsCol(), uid), s => cb(s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null), e => console.error(e));
     },
     saveRating(table, key, val) {
       return fb.setDoc(fb.doc(ratingsCol(), uid), { table, updatedAt: ts(), r: { [key]: val } }, { merge: true });
