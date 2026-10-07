@@ -144,8 +144,8 @@ function viewStart() {
     <h2>Three steps</h2>
     <ol class="lede">
       <li><b>On your own · 25 min.</b> Open <b>Rate my curriculum</b> on your own laptop and rate your table’s topics.</li>
-      <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each topic.</li>
-      <li><b>With the room · 20 min.</b> We look at every table’s results together and decide where to start.</li>
+      <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each topic. Then write a short brief for each truly new topic that needs a resource.</li>
+      <li><b>With the room · 20 min.</b> Each table shares its briefs. We look at every table’s results together and decide where to start.</li>
     </ol>`;
 }
 
@@ -304,8 +304,7 @@ function viewTable(T) {
     <h2>Where we disagreed</h2>
     <textarea class="big" data-field="disagreed" maxlength="3000" aria-label="Where we disagreed" placeholder="Topics you could not agree on, and why"></textarea>
     <h2 id="briefs">Briefs</h2>
-    <p><span class="step-tag">Step 3 · 15 min</span></p>
-    <p class="lede">Write one brief for each truly new topic that matters most. Write for the person who will build the resource.</p>
+    <p class="lede">Once your verdicts are in, write a short brief for each truly new topic that needs a resource. A few lines is enough. Your table shares its briefs with the room next.</p>
     <div id="brief-list"></div>
     <button type="button" class="btn primary" id="add-brief">Add a brief</button>`;
 
@@ -431,7 +430,6 @@ function viewTable(T) {
   const FIELDS = [
     ['content', 'The content in one sentence', '', 'input'],
     ['know', 'What a teacher needs to know', 'People, events, dates, terms', 'textarea'],
-    ['fits', 'Where it fits', 'Its outcome. What comes before and after, in Grade 7, 8 or 9.', 'textarea'],
     ['watch', 'Watch for', 'Common errors. Sensitive topics.', 'textarea'],
     ['sources', 'Sources', 'What you trust. What we already have.', 'textarea']
   ];
@@ -572,7 +570,6 @@ function viewRoom() {
         ${bs.map(b => `<div class="brief">
           <div><b>${esc(TP[b.code] ? `${b.code} · ${TP[b.code].name}` : (b.code === 'several' ? 'Several topics' : (b.code || 'No topic chosen')))}</b>${b.content ? ` · ${esc(b.content)}` : ''}</div>
           ${b.know ? `<div><b>What a teacher needs to know.</b> ${esc(b.know)}</div>` : ''}
-          ${b.fits ? `<div><b>Where it fits.</b> ${esc(b.fits)}</div>` : ''}
           ${b.watch ? `<div><b>Watch for.</b> ${esc(b.watch)}</div>` : ''}
           ${b.sources ? `<div><b>Sources.</b> ${esc(b.sources)}</div>` : ''}
         </div>`).join('')}`;
@@ -657,8 +654,8 @@ function download(kind, ratings, tables, briefs) {
     });
     save(`${base}-verdicts-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'briefs') {
-    const rows = [['table', 'topic_id', 'topic', 'content', 'need_to_know', 'where_it_fits', 'watch_for', 'sources', 'created_at', 'updated_at']];
-    briefs.forEach(b => rows.push([b.table, b.code, TP[b.code] ? TP[b.code].name : (b.code === 'several' ? 'Several topics' : ''), b.content, b.know, b.fits, b.watch, b.sources, tsString(b.createdAt), tsString(b.updatedAt)]));
+    const rows = [['table', 'topic_id', 'topic', 'content', 'need_to_know', 'watch_for', 'sources', 'created_at', 'updated_at']];
+    briefs.forEach(b => rows.push([b.table, b.code, TP[b.code] ? TP[b.code].name : (b.code === 'several' ? 'Several topics' : ''), b.content, b.know, b.watch, b.sources, tsString(b.createdAt), tsString(b.updatedAt)]));
     save(`${base}-briefs-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else {
     const norm = o => JSON.parse(JSON.stringify(o, (k, v) => (v && typeof v.toDate === 'function') ? v.toDate().toISOString() : v));
@@ -689,7 +686,7 @@ function route() {
     await store.init();
   } catch (err) {
     console.error(err);
-    app.innerHTML = `<div class="emph"><b>Could not connect.</b> Check the Wi-Fi and reload the page. If it still fails, use the paper sheets. (${esc(err.message || err)})</div>`;
+    app.innerHTML = `<div class="emph"><b>Could not connect.</b> Check the Wi-Fi and reload the page. If it still fails, let Jonathon know. (${esc(err.message || err)})</div>`;
     setStatus('Not connected', 'warn');
     return;
   }
