@@ -183,3 +183,43 @@ details.stmts summary::-webkit-details-marker { display: none; }
 .optional-card { margin-top: 16px; padding: 14px 16px; border: 1px dashed var(--rule-strong); border-radius: var(--radius-md); background: #fff; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
 .optional-card h3 { margin: 0; font-size: 17px; }
 .optional-card p { margin: 4px 0 0; }
+
+/* Resource priorities */
+.prio-card { margin: 8px 0 24px; padding: 16px 18px; border: 1px solid var(--rule-strong); border-left: 6px solid var(--eips); border-radius: var(--radius-md); background: #fff; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.prio-card h2 { margin: 0; font-size: 20px; }
+.prio-card p { margin: 4px 0 0; }
+.rank-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .rank-layout { grid-template-columns: minmax(0, 1fr); } }
+.rank-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rank-head h2, .rank-pool h2 { margin: 0 0 10px; }
+.rank-slots { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.slot { min-height: 60px; border: 2px dashed var(--gold); border-radius: var(--radius-md); background: var(--gold-tint); display: flex; align-items: center; gap: 12px; padding: 6px 12px; }
+.slot:not(.empty) { border-style: solid; border-color: var(--slate); background: #fff; padding: 0; }
+.slot.over, .rank-pool.over { outline: 3px solid var(--blue); outline-offset: 2px; }
+.slot-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px 8px 12px; cursor: grab; }
+.slot-item.dragging, .pool-item.dragging { opacity: 0.5; }
+.slot-n { flex: none; width: 34px; height: 34px; border-radius: 17px; background: var(--slate); color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.slot.empty .slot-n { background: var(--gold-ink); }
+.slot-text { flex: 1; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.slot-btns { flex: none; display: flex; gap: 4px; }
+.icon-btn { min-width: 40px; min-height: 40px; border: 1px solid var(--rule-strong); border-radius: var(--radius-sm); background: #fff; cursor: pointer; font-weight: 700; font-size: 16px; }
+.icon-btn:hover:not(:disabled) { background: var(--slate-tint); }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.kind { display: inline-block; font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); }
+.kind.teacher { background: var(--slate-tint); color: var(--slate); }
+.kind.student { background: var(--teal-tint, #e3f1f2); color: var(--teal, #1f6f78); }
+.pool-kind { margin: 14px 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.pool-list { display: flex; flex-direction: column; gap: 8px; }
+.pool-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; border: 1px solid var(--rule-strong); border-radius: var(--radius-md); padding: 10px 12px; cursor: grab; }
+.pool-item.chosen { background: var(--slate-tint); cursor: default; }
+.pool-item .btn { flex: none; white-space: nowrap; }
+.pool-item .btn:disabled { cursor: default; opacity: 0.8; }
+.pool-desc { font-size: 15px; }
+.rank-other-label { display: block; margin-top: 18px; font-weight: 700; }
+.rank-other { margin-top: 6px; width: 100%; min-height: 72px; padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius-sm); background: #fff; box-sizing: border-box; }
+.kind-totals { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 12px; }
+.kind-totals .kind { font-size: 15px; padding: 5px 10px; }
+.pbar { display: inline-block; width: 120px; height: 10px; margin-right: 8px; background: var(--slate-tint); border-radius: 5px; vertical-align: middle; overflow: hidden; }
+.pbar > span { display: block; height: 100%; background: var(--eips); }
+.rank-suggest { padding-left: 20px; }
