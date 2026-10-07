@@ -157,7 +157,7 @@ function viewStart() {
     <h1>Find what is truly new in Grade 7</h1>
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <section class="prio-card" aria-labelledby="prio-h">
-      <div><h2 id="prio-h">Resource priorities</h2>
+      <div><h2 id="prio-h">Resource Developer Priorities</h2>
         <p>If we hire a Social Studies resource developer, where should their time go? Split it across the grades, pick when they start and rank your top six resources.</p></div>
       <div class="row"><a class="btn primary" href="#/rank">Set your priorities</a><a class="btn" href="#/rank/room">See the room's results</a></div>
     </section>
