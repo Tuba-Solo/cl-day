@@ -22,6 +22,26 @@ const LEVEL_LABEL = Object.fromEntries(LEVELS);
 const VERDICTS = [['familiar', 'Familiar'], ['partly', 'Partly new'], ['new', 'Truly new']];
 const VERDICT_LABEL = Object.fromEntries(VERDICTS);
 
+// Resource priorities: what a Social Studies resource developer could make. People rank their top six.
+const RESOURCES = [
+  { id: 't1', kind: 'Teacher', name: 'Teacher reference handouts', desc: '2 to 4 pages on new content: the history, what to watch for, where to learn more.' },
+  { id: 't2', kind: 'Teacher', name: 'Unit plans and pacing', desc: 'What to teach, in what order, and how long it takes.' },
+  { id: 't3', kind: 'Teacher', name: 'Lesson plans', desc: 'Step-by-step plans a teacher can pick up and teach.' },
+  { id: 't4', kind: 'Teacher', name: 'Assessments with rubrics', desc: 'Tasks that show what students know, with criteria.' },
+  { id: 't5', kind: 'Teacher', name: 'Marking keys and exemplars', desc: 'Answer keys and sample student work at each level.' },
+  { id: 't6', kind: 'Teacher', name: 'Annotated source lists', desc: 'Vetted sources, with notes on fit and how to use them.' },
+  { id: 't7', kind: 'Teacher', name: 'Background readings', desc: 'Short readings that build a teacher\u2019s content knowledge.' },
+  { id: 's1', kind: 'Student', name: 'Lesson slide decks', desc: 'Slides a teacher can present as is or adapt.' },
+  { id: 's2', kind: 'Student', name: 'Handouts and organizers', desc: 'Worksheets and graphic organizers for students.' },
+  { id: 's3', kind: 'Student', name: 'Primary source sets', desc: 'Documents, images and maps with guiding questions.' },
+  { id: 's4', kind: 'Student', name: 'Readings at grade level', desc: 'Content written for Grade 7 readers.' },
+  { id: 's5', kind: 'Student', name: 'Maps and timelines', desc: 'Visuals that place events in space and time.' },
+  { id: 's6', kind: 'Student', name: 'Video viewing guides', desc: 'Questions and time stamps for Curio and other video.' },
+  { id: 's7', kind: 'Student', name: 'Activities and simulations', desc: 'Hands-on tasks, role plays and inquiry activities.' }
+];
+const RS = Object.fromEntries(RESOURCES.map(x => [x.id, x]));
+const TOP_N = 6;
+
 const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
@@ -120,6 +140,11 @@ function viewStart() {
   app.innerHTML = `
     <h1>Find what is truly new in Grade 7</h1>
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
+    <section class="prio-card" aria-labelledby="prio-h">
+      <div><h2 id="prio-h">Resource priorities</h2>
+        <p>If we hire a Social Studies resource developer, what should they make first? Rank your top six.</p></div>
+      <div class="row"><a class="btn primary" href="#/rank">Rank the resources</a><a class="btn" href="#/rank/room">See the room's ranking</a></div>
+    </section>
     <h2>Choose your table</h2>
     <div class="table-grid">
       ${MAIN_TABLES.map(t => `
@@ -486,6 +511,7 @@ function viewRoom() {
         <button type="button" class="btn" data-dl="json">Everything (JSON)</button>
       </div>
     </div>
+    <div class="row" style="margin:8px 0 0"><a class="btn" href="#/rank/room">Resource priorities: the room's ranking</a></div>
     <h2>Topics</h2>
     <div class="toolbar">
       <label>Units <select class="select" id="unit">
@@ -665,6 +691,189 @@ function download(kind, ratings, tables, briefs) {
   }
 }
 
+// ---------- Resource priorities: my ranking ----------
+function viewRank() {
+  let order = [];
+  let mineLoaded = false;
+  app.innerHTML = `
+    <div class="pagehead"><div>
+      <span class="step-tag">Resource priorities</span>
+      <h1>Rank the resources</h1></div>
+      <div class="row"><a class="btn" href="#/rank/room">See the room's ranking</a></div>
+    </div>
+    <p class="lede">If we hire a Social Studies resource developer, what should they make first? Pick your top ${TOP_N} and put them in order, most important first. Your ranking saves as you go. No names are collected.</p>
+    <details class="howto"><summary>How to rank</summary>
+      <p><b>Add</b> a resource from the list. It goes into the next open place in your top ${TOP_N}.</p>
+      <p><b>Move</b> it with the up and down arrows, or drag it to a new place.</p>
+      <p><b>Remove</b> it with the ✕ button, or drag it back to the list.</p>
+    </details>
+    <div class="rank-layout">
+      <section class="rank-mine" aria-labelledby="mine-h">
+        <div class="rank-head"><h2 id="mine-h">Your top ${TOP_N}</h2><span class="muted" id="save-state" aria-live="polite"></span></div>
+        <ol class="rank-slots" id="slots"></ol>
+        <div id="rank-done" class="done-banner" hidden>Your top ${TOP_N} is saved. You can still change the order.</div>
+        <label class="rank-other-label" for="rank-other">Something missing? <span class="muted">Name it here.</span></label>
+        <textarea id="rank-other" class="rank-other" maxlength="500" placeholder="A kind of resource that is not on the list"></textarea>
+      </section>
+      <section class="rank-pool" id="pool" aria-labelledby="pool-h">
+        <h2 id="pool-h">Resources</h2>
+        <h3 class="pool-kind">Teacher-facing</h3><div class="pool-list" data-kind="Teacher"></div>
+        <h3 class="pool-kind">Student-facing</h3><div class="pool-list" data-kind="Student"></div>
+      </section>
+    </div>`;
+  const slotsEl = app.querySelector('#slots');
+  const poolEl = app.querySelector('#pool');
+  const saveState = app.querySelector('#save-state');
+  const otherEl = app.querySelector('#rank-other');
+  const kindChip = x => `<span class="kind ${x.kind === 'Teacher' ? 'teacher' : 'student'}">${x.kind === 'Teacher' ? 'Teacher' : 'Student'}</span>`;
+
+  const save = () => track(store.saveRank({ order: [...order] }), saveState);
+  const place = (rid, idx) => {
+    if (!RS[rid]) return;
+    const o = order.filter(x => x !== rid);
+    o.splice(Math.max(0, Math.min(idx, o.length)), 0, rid);
+    order = o.slice(0, TOP_N);
+    paint(); save();
+  };
+  const removeAt = rid => { order = order.filter(x => x !== rid); paint(); save(); };
+
+  const paint = () => {
+    slotsEl.innerHTML = Array.from({ length: TOP_N }, (_, i) => {
+      const x = RS[order[i]];
+      if (!x) return `<li class="slot empty" data-slot="${i}"><span class="slot-n">${i + 1}</span><span class="muted">Empty. Add a resource from the list.</span></li>`;
+      return `<li class="slot" data-slot="${i}"><div class="slot-item" draggable="true" data-rid="${x.id}">
+        <span class="slot-n">${i + 1}</span>
+        <div class="slot-text"><b>${esc(x.name)}</b> ${kindChip(x)}</div>
+        <div class="slot-btns">
+          <button type="button" class="icon-btn" data-act="up" data-rid="${x.id}" aria-label="Move ${esc(x.name)} up" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" class="icon-btn" data-act="down" data-rid="${x.id}" aria-label="Move ${esc(x.name)} down" ${i === order.length - 1 ? 'disabled' : ''}>↓</button>
+          <button type="button" class="icon-btn" data-act="remove" data-rid="${x.id}" aria-label="Remove ${esc(x.name)}">✕</button>
+        </div></div></li>`;
+    }).join('');
+    const full = order.length >= TOP_N;
+    poolEl.querySelectorAll('.pool-list').forEach(list => {
+      list.innerHTML = RESOURCES.filter(x => x.kind === list.dataset.kind).map(x => {
+        const pos = order.indexOf(x.id);
+        const label = pos >= 0 ? `In your top ${TOP_N} · ${pos + 1}` : (full ? `Top ${TOP_N} full` : 'Add');
+        return `<div class="pool-item${pos >= 0 ? ' chosen' : ''}" draggable="${pos >= 0 ? 'false' : 'true'}" data-rid="${x.id}">
+          <div><b>${esc(x.name)}</b><div class="muted pool-desc">${esc(x.desc)}</div></div>
+          <button type="button" class="btn${pos < 0 && !full ? ' primary' : ''}" data-act="add" data-rid="${x.id}" ${pos >= 0 || full ? 'disabled' : ''}>${label}</button>
+        </div>`;
+      }).join('');
+    });
+    app.querySelector('#rank-done').hidden = order.length < TOP_N;
+  };
+
+  const on = (type, fn) => { app.addEventListener(type, fn); unsubs.push(() => app.removeEventListener(type, fn)); };
+  on('click', e => {
+    const b = e.target.closest('button[data-act]');
+    if (!b || !app.contains(b)) return;
+    const rid = b.dataset.rid, i = order.indexOf(rid);
+    if (b.dataset.act === 'add' && i < 0 && order.length < TOP_N) place(rid, order.length);
+    else if (b.dataset.act === 'up' && i > 0) place(rid, i - 1);
+    else if (b.dataset.act === 'down' && i >= 0 && i < order.length - 1) place(rid, i + 1);
+    else if (b.dataset.act === 'remove' && i >= 0) removeAt(rid);
+  });
+  // Drag and drop on top of the buttons, for people using a mouse.
+  on('dragstart', e => {
+    const el = e.target.closest('[data-rid][draggable="true"]');
+    if (!el) return;
+    e.dataTransfer.setData('text/plain', el.dataset.rid);
+    e.dataTransfer.effectAllowed = 'move';
+    el.classList.add('dragging');
+  });
+  on('dragend', e => {
+    app.querySelectorAll('.dragging, .over').forEach(x => x.classList.remove('dragging', 'over'));
+  });
+  on('dragover', e => {
+    const slot = e.target.closest('[data-slot]'); const pool = e.target.closest('#pool');
+    if (!slot && !pool) return;
+    e.preventDefault();
+    app.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+    (slot || pool).classList.add('over');
+  });
+  on('drop', e => {
+    const slot = e.target.closest('[data-slot]'); const pool = e.target.closest('#pool');
+    if (!slot && !pool) return;
+    e.preventDefault();
+    const rid = e.dataTransfer.getData('text/plain');
+    app.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+    if (slot) place(rid, Number(slot.dataset.slot));
+    else if (order.includes(rid)) removeAt(rid);
+  });
+  otherEl.addEventListener('input', () => debounce('rank-other', () => track(store.saveRank({ other: otherEl.value }), saveState)));
+
+  paint();
+  unsubs.push(store.watchMyRank(d => {
+    if (!mineLoaded || !pending.size) {
+      order = ((d && d.order) || []).filter(id => RS[id]).slice(0, TOP_N);
+      paint();
+    }
+    if (canPaint(otherEl, 'rank-other')) otherEl.value = (d && d.other) || '';
+    mineLoaded = true;
+  }));
+}
+
+// ---------- Resource priorities: the room's ranking ----------
+function rankScores(list) {
+  const people = list.filter(d => Array.isArray(d.order) && d.order.length);
+  const rows = RESOURCES.map(x => ({ ...x, points: 0, top: 0, first: 0 }));
+  const by = Object.fromEntries(rows.map(x => [x.id, x]));
+  people.forEach(d => d.order.slice(0, TOP_N).forEach((id, i) => {
+    if (!by[id]) return;
+    by[id].points += TOP_N - i;
+    by[id].top++;
+    if (i === 0) by[id].first++;
+  }));
+  rows.sort((a, b) => b.points - a.points || b.first - a.first || a.id.localeCompare(b.id));
+  return { people, rows };
+}
+function viewRankRoom() {
+  let list = [];
+  app.innerHTML = `
+    <div class="pagehead"><div>
+      <span class="step-tag">Resource priorities</span>
+      <h1>The room's ranking</h1></div>
+      <div class="row"><a class="btn" href="#/rank">Change my ranking</a><button type="button" class="btn" id="dl-ranks">Rankings (CSV)</button></div>
+    </div>
+    <p class="lede" id="rank-count"></p>
+    <p class="muted">A first place earns ${TOP_N} points, a second place ${TOP_N - 1}, down to 1 point for place ${TOP_N}. It updates as people rank.</p>
+    <div class="kind-totals" id="kind-totals"></div>
+    <div class="tablewrap"><table class="sum rank-table">
+      <thead><tr><th>#</th><th>Resource</th><th>Kind</th><th>Points</th><th>In a top ${TOP_N}</th><th>Ranked first</th></tr></thead>
+      <tbody id="rank-body"></tbody></table></div>
+    <h2>Something missing?</h2>
+    <ul class="rank-suggest" id="rank-suggest"></ul>`;
+  const paint = () => {
+    const { people, rows } = rankScores(list);
+    const max = Math.max(1, ...rows.map(r => r.points));
+    app.querySelector('#rank-count').innerHTML = `<b>${people.length}</b> ${people.length === 1 ? 'person has' : 'people have'} ranked.`;
+    const kt = k => rows.filter(r => r.kind === k).reduce((s, r) => s + r.points, 0);
+    app.querySelector('#kind-totals').innerHTML = `<span class="kind teacher">Teacher-facing · ${kt('Teacher')} points</span><span class="kind student">Student-facing · ${kt('Student')} points</span>`;
+    app.querySelector('#rank-body').innerHTML = rows.map((r, i) => `<tr>
+      <td class="num">${r.points ? i + 1 : '–'}</td>
+      <td><b>${esc(r.name)}</b><div class="muted">${esc(r.desc)}</div></td>
+      <td>${r.kind === 'Teacher' ? 'Teacher' : 'Student'}</td>
+      <td class="num"><div class="pbar"><span style="width:${Math.round(r.points / max * 100)}%"></span></div>${r.points}</td>
+      <td class="num">${r.top} of ${people.length}</td>
+      <td class="num">${r.first}</td></tr>`).join('');
+    const sugg = list.map(d => (d.other || '').trim()).filter(Boolean);
+    app.querySelector('#rank-suggest').innerHTML = sugg.length ? sugg.map(s => `<li>${esc(s)}</li>`).join('') : '<li class="muted">No suggestions yet.</li>';
+  };
+  app.querySelector('#dl-ranks').onclick = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const { people, rows } = rankScores(list);
+    const out = [['resource_id', 'resource', 'kind', 'points', 'in_top_six', 'ranked_first']];
+    rows.forEach(r => out.push([r.id, r.name, r.kind, r.points, r.top, r.first]));
+    out.push([]);
+    out.push(['person', ...Array.from({ length: TOP_N }, (_, i) => `place_${i + 1}`), 'something_missing', 'updated_at']);
+    people.forEach((d, i) => out.push([`P${String(i + 1).padStart(2, '0')}`, ...Array.from({ length: TOP_N }, (_, j) => RS[d.order[j]] ? RS[d.order[j]].name : ''), d.other || '', tsString(d.updatedAt)]));
+    save(`${SESSION_ID}-resource-ranking-${stamp}.csv`, csv(out), 'text/csv;charset=utf-8');
+  };
+  paint();
+  unsubs.push(store.watchRanks(l => { list = l; paint(); }));
+}
+
 // ---------- Router ----------
 function route() {
   cleanup();
@@ -676,6 +885,7 @@ function route() {
   if (view === 'rate') viewRate(T);
   else if (view === 'table') viewTable(T);
   else if (view === 'room') viewRoom();
+  else if (view === 'rank') { if (arg === 'room') viewRankRoom(); else viewRank(); }
   else viewStart();
   app.focus({ preventScroll: true });
 }
