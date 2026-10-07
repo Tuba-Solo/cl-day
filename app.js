@@ -527,7 +527,7 @@ function viewRoom() {
         <button type="button" class="btn" data-dl="json">Everything (JSON)</button>
       </div>
     </div>
-    <div class="row" style="margin:8px 0 0"><a class="btn" href="#/rank/room">Resource priorities: the room's results</a></div>
+    <div class="row" style="margin:8px 0 0"><a class="btn" href="#/rank/room">Resource Developer Priorities: the room's results</a></div>
     <h2>Topics</h2>
     <div class="toolbar">
       <label>Units <select class="select" id="unit">
@@ -713,7 +713,7 @@ function viewRank() {
   let mineLoaded = false;
   app.innerHTML = `
     <div class="pagehead"><div>
-      <span class="step-tag">Resource priorities</span>
+      <span class="step-tag">Resource Developer Priorities</span>
       <h1>Set your priorities</h1></div>
       <div class="row"><a class="btn" href="#/rank/room">See the room's results</a></div>
     </div>
@@ -909,7 +909,7 @@ function viewRankRoom() {
   let list = [];
   app.innerHTML = `
     <div class="pagehead"><div>
-      <span class="step-tag">Resource priorities</span>
+      <span class="step-tag">Resource Developer Priorities</span>
       <h1>The room's results</h1></div>
       <div class="row"><a class="btn" href="#/rank">Change my answers</a><button type="button" class="btn" id="dl-ranks">Results (CSV)</button></div>
     </div>
