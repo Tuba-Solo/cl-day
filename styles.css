@@ -224,3 +224,29 @@ details.stmts summary::-webkit-details-marker { display: none; }
 .pbar { display: inline-block; width: 120px; height: 10px; margin-right: 8px; background: var(--slate-tint); border-radius: 5px; vertical-align: middle; overflow: hidden; }
 .pbar > span { display: block; height: 100%; background: var(--eips); }
 .rank-suggest { padding-left: 20px; }
+
+/* Grade sliders on the priorities page */
+.grade-card { margin: 8px 0 24px; padding: 16px 18px; border: 1px solid var(--rule-strong); border-left: 6px solid var(--eips); border-radius: var(--radius-md); background: #fff; }
+.grade-card p.muted { margin: 0 0 12px; }
+.grade-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 64px; align-items: center; gap: 16px; padding: 8px 0; }
+.grade-row label { font-weight: 700; }
+.grade-pct { font-size: 22px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.grade-left { margin: 10px 0 0; padding: 10px 12px; background: var(--slate-tint); border-radius: var(--radius-sm); }
+.grade-row input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; margin: 0; cursor: pointer; --val: 0%; --cap: 100%; }
+.grade-row input[type="range"]::-webkit-slider-runnable-track { height: 12px; border-radius: 6px; background: linear-gradient(to right, var(--eips) 0 var(--val), #cfe9e3 var(--val) var(--cap), #d7dce1 var(--cap) 100%); }
+.grade-row input[type="range"]::-moz-range-track { height: 12px; border-radius: 6px; background: linear-gradient(to right, var(--eips) 0 var(--val), #cfe9e3 var(--val) var(--cap), #d7dce1 var(--cap) 100%); }
+.grade-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--eips-dark); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.grade-row input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--eips-dark); }
+.grade-row input[type="range"]:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; border-radius: 6px; }
+.rank-step { margin: 8px 0 12px; }
+.grade-room { display: flex; flex-direction: column; gap: 10px; margin: 0 0 24px; }
+.grade-room-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 56px 190px; align-items: center; gap: 14px; }
+.grade-room-name { font-weight: 700; }
+.grade-room-pct { font-size: 20px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.grade-bar { width: 100%; height: 18px; }
+@media (max-width: 760px) {
+  .grade-row { grid-template-columns: minmax(0, 1fr) 56px; }
+  .grade-row label { grid-column: 1 / -1; }
+  .grade-room-row { grid-template-columns: minmax(0, 1fr) 56px; }
+  .grade-room-name, .grade-room-most { grid-column: 1 / -1; }
+}
