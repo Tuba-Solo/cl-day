@@ -27,8 +27,8 @@ function makeDemoStore() {
   const bc = 'BroadcastChannel' in window ? new BroadcastChannel(KEY) : null;
   const listeners = new Set();
   const load = () => {
-    try { return JSON.parse(localStorage.getItem(KEY)) || { ratings: {}, tables: {}, briefs: {} }; }
-    catch { return { ratings: {}, tables: {}, briefs: {} }; }
+    try { return JSON.parse(localStorage.getItem(KEY)) || { ratings: {}, tables: {}, briefs: {}, ranks: {} }; }
+    catch { return { ratings: {}, tables: {}, briefs: {}, ranks: {} }; }
   };
   let db = load();
   const notify = () => listeners.forEach(fn => fn());
@@ -90,7 +90,14 @@ function makeDemoStore() {
       db.briefs[id] = deepMerge(db.briefs[id] || {}, { ...fields, updatedAt: now() });
       commit();
     },
-    async resetDemo() { db = { ratings: {}, tables: {}, briefs: {} }; commit(); }
+    watchMyRank(cb) { return watch(() => cb((db.ranks || {})[uid] || null)); },
+    watchRanks(cb) { return watch(() => cb(Object.entries(db.ranks || {}).map(([id, d]) => ({ id, ...d })))); },
+    async saveRank(fields) {
+      db.ranks = db.ranks || {};
+      db.ranks[uid] = { ...(db.ranks[uid] || {}), ...fields, updatedAt: now() };
+      commit();
+    },
+    async resetDemo() { db = { ratings: {}, tables: {}, briefs: {}, ranks: {} }; commit(); }
   };
 }
 
@@ -109,6 +116,7 @@ async function makeFirebaseStore() {
   const ratingsCol = () => fb.collection(db, ...base, 'ratings');
   const tablesCol = () => fb.collection(db, ...base, 'tables');
   const briefsCol = () => fb.collection(db, ...base, 'briefs');
+  const ranksCol = () => fb.collection(db, ...base, 'ranks');
   let uid = null;
   const ts = () => fb.serverTimestamp();
   const plain = (snap) => ({ id: snap.id, ...snap.data({ serverTimestamps: 'estimate' }) });
@@ -175,6 +183,16 @@ async function makeFirebaseStore() {
     },
     saveBrief(id, fields) {
       return fb.setDoc(fb.doc(briefsCol(), id), { ...fields, updatedAt: ts() }, { merge: true });
+    },
+    // Resource priorities: one document per person, the ordered top six plus an optional suggestion.
+    watchMyRank(cb) {
+      return fb.onSnapshot(fb.doc(ranksCol(), uid), s => cb(s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null), e => console.error(e));
+    },
+    watchRanks(cb) {
+      return fb.onSnapshot(ranksCol(), s => cb(s.docs.map(plain)), e => console.error(e));
+    },
+    saveRank(fields) {
+      return fb.setDoc(fb.doc(ranksCol(), uid), { ...fields, updatedAt: ts() }, { merge: true });
     }
   };
 }
