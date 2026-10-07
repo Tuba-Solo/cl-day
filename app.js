@@ -24,20 +24,25 @@ const VERDICT_LABEL = Object.fromEntries(VERDICTS);
 
 // Resource priorities: what a Social Studies resource developer could make. People rank their top six.
 const RESOURCES = [
-  { id: 't1', kind: 'Teacher', name: 'Teacher reference handouts', desc: '2 to 4 pages on new content: the history, what to watch for, where to learn more.' },
-  { id: 't2', kind: 'Teacher', name: 'Unit plans and pacing', desc: 'What to teach, in what order, and how long it takes.' },
-  { id: 't3', kind: 'Teacher', name: 'Lesson plans', desc: 'Step-by-step plans a teacher can pick up and teach.' },
-  { id: 't4', kind: 'Teacher', name: 'Assessments with rubrics', desc: 'Tasks that show what students know, with criteria.' },
-  { id: 't5', kind: 'Teacher', name: 'Marking keys and exemplars', desc: 'Answer keys and sample student work at each level.' },
-  { id: 't6', kind: 'Teacher', name: 'Annotated source lists', desc: 'Vetted sources, with notes on fit and how to use them.' },
-  { id: 't7', kind: 'Teacher', name: 'Background readings', desc: 'Short readings that build a teacher\u2019s content knowledge.' },
-  { id: 's1', kind: 'Student', name: 'Lesson slide decks', desc: 'Slides a teacher can present as is or adapt.' },
-  { id: 's2', kind: 'Student', name: 'Handouts and organizers', desc: 'Worksheets and graphic organizers for students.' },
-  { id: 's3', kind: 'Student', name: 'Primary source sets', desc: 'Documents, images and maps with guiding questions.' },
-  { id: 's4', kind: 'Student', name: 'Readings at grade level', desc: 'Content written for Grade 7 readers.' },
-  { id: 's5', kind: 'Student', name: 'Maps and timelines', desc: 'Visuals that place events in space and time.' },
-  { id: 's6', kind: 'Student', name: 'Video viewing guides', desc: 'Questions and time stamps for Curio and other video.' },
-  { id: 's7', kind: 'Student', name: 'Activities and simulations', desc: 'Hands-on tasks, role plays and inquiry activities.' }
+  { id: 'content-guides', kind: 'Teacher', name: 'Content guides', desc: 'Background on a new topic for the teacher. The history, key terms and what to watch for.' },
+  { id: 'year-plans', kind: 'Teacher', name: 'Year plans and pacing', desc: 'The order of units across the year, with time for each.' },
+  { id: 'unit-plans', kind: 'Teacher', name: 'Unit plans', desc: 'One unit mapped out. Outcomes, key questions, the lesson sequence and where assessment falls.' },
+  { id: 'lesson-plans', kind: 'Teacher', name: 'Lesson plans', desc: 'Step-by-step plans for a single lesson.' },
+  { id: 'assessments', kind: 'Teacher', name: 'Assessment tasks and rubrics', desc: 'End-of-unit tasks with criteria and marking keys.' },
+  { id: 'exemplars', kind: 'Teacher', name: 'Exemplars', desc: 'Marked student work at each level, to calibrate marking.' },
+  { id: 'resource-lists', kind: 'Teacher', name: 'Vetted resource lists', desc: 'Existing videos, books and sites, checked and matched to outcomes.' },
+  { id: 'crosswalks', kind: 'Teacher', name: 'Curriculum crosswalks', desc: 'What is new, moved or gone compared with the old program of studies.' },
+  { id: 'slide-decks', kind: 'Student', name: 'Lesson slide decks', desc: 'Slides a teacher can present as is or adapt.' },
+  { id: 'readings', kind: 'Student', name: 'Student readings', desc: 'Short texts on the content, written for the grade.' },
+  { id: 'source-packets', kind: 'Student', name: 'Primary source packets', desc: 'Documents, photos and maps from the time, with guiding questions.' },
+  { id: 'organizers', kind: 'Student', name: 'Graphic organizers', desc: 'Reusable templates for cause and effect, comparison, perspective and more.' },
+  { id: 'maps-timelines', kind: 'Student', name: 'Maps and timelines', desc: 'Visuals that place events in space and time.' },
+  { id: 'video-guides', kind: 'Student', name: 'Video viewing guides', desc: 'Questions with time stamps for specific Curio and other videos.' },
+  { id: 'simulations', kind: 'Student', name: 'Simulations and role plays', desc: 'Students take on roles and make decisions people faced at the time.' },
+  { id: 'inquiry', kind: 'Student', name: 'Inquiry projects', desc: 'Multi-lesson projects built on a driving question, with checkpoints.' },
+  { id: 'vocabulary', kind: 'Student', name: 'Vocabulary supports', desc: 'Glossaries and word walls for key terms.' },
+  { id: 'quick-checks', kind: 'Student', name: 'Quick checks', desc: 'Exit slips and short quizzes to see who has it.' },
+  { id: 'adapted', kind: 'Student', name: 'Adapted materials', desc: 'Existing materials at a lower reading level or with added supports.' }
 ];
 const RS = Object.fromEntries(RESOURCES.map(x => [x.id, x]));
 const TOP_N = 6;
