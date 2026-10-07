@@ -177,3 +177,9 @@ ul.cross li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid v
 details.stmts summary::before { content: "▸"; display: inline-block; width: 1.1em; }
 details.stmts[open] summary::before { content: "▾"; }
 details.stmts summary::-webkit-details-marker { display: none; }
+
+/* Unit tag and the optional Unit 1 table */
+.unit-tag { margin: 4px 0 0 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.optional-card { margin-top: 16px; padding: 14px 16px; border: 1px dashed var(--rule-strong); border-radius: var(--radius-md); background: #fff; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.optional-card h3 { margin: 0; font-size: 17px; }
+.optional-card p { margin: 4px 0 0; }
