@@ -45,6 +45,11 @@ const RESOURCES = [
   { id: 'adapted', kind: 'Student', name: 'Adapted materials', desc: 'Existing materials at a lower reading level or with added supports.' }
 ];
 const RS = Object.fromEntries(RESOURCES.map(x => [x.id, x]));
+// Share of the developer's time by grade. The three together cannot go over 100.
+const GRADES = [{ id: 'g7', name: 'Social Studies 7' }, { id: 'g8', name: 'Social Studies 8' }, { id: 'g9', name: 'Social Studies 9' }];
+const GRADE_STEP = 5;
+const gradeVals = g => Object.fromEntries(GRADES.map(x => [x.id, Math.max(0, Math.min(100, Number((g || {})[x.id]) || 0))]));
+const gradeSum = v => GRADES.reduce((t, x) => t + (v[x.id] || 0), 0);
 const TOP_N = 6;
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -147,8 +152,8 @@ function viewStart() {
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <section class="prio-card" aria-labelledby="prio-h">
       <div><h2 id="prio-h">Resource priorities</h2>
-        <p>If we hire a Social Studies resource developer, what should they make first? Rank your top six.</p></div>
-      <div class="row"><a class="btn primary" href="#/rank">Rank the resources</a><a class="btn" href="#/rank/room">See the room's ranking</a></div>
+        <p>If we hire a Social Studies resource developer, where should their time go? Split it across the grades and rank your top six resources.</p></div>
+      <div class="row"><a class="btn primary" href="#/rank">Set your priorities</a><a class="btn" href="#/rank/room">See the room's results</a></div>
     </section>
     <h2>Choose your table</h2>
     <div class="table-grid">
@@ -516,7 +521,7 @@ function viewRoom() {
         <button type="button" class="btn" data-dl="json">Everything (JSON)</button>
       </div>
     </div>
-    <div class="row" style="margin:8px 0 0"><a class="btn" href="#/rank/room">Resource priorities: the room's ranking</a></div>
+    <div class="row" style="margin:8px 0 0"><a class="btn" href="#/rank/room">Resource priorities: the room's results</a></div>
     <h2>Topics</h2>
     <div class="toolbar">
       <label>Units <select class="select" id="unit">
@@ -703,10 +708,21 @@ function viewRank() {
   app.innerHTML = `
     <div class="pagehead"><div>
       <span class="step-tag">Resource priorities</span>
-      <h1>Rank the resources</h1></div>
-      <div class="row"><a class="btn" href="#/rank/room">See the room's ranking</a></div>
+      <h1>Set your priorities</h1></div>
+      <div class="row"><a class="btn" href="#/rank/room">See the room's results</a></div>
     </div>
-    <p class="lede">If we hire a Social Studies resource developer, what should they make first? Pick your top ${TOP_N} and put them in order, most important first. Your ranking saves as you go. No names are collected.</p>
+    <p class="lede">If we hire a Social Studies resource developer, where should their time go? First split it across the grades. Then pick your top ${TOP_N} resources and put them in order. Everything saves as you go. No names are collected.</p>
+    <section class="grade-card" aria-labelledby="grades-h">
+      <div class="rank-head"><h2 id="grades-h">1 · Which grades?</h2><span class="muted" id="grade-state" aria-live="polite"></span></div>
+      <p class="muted">Drag each slider to the share of the developer's time that grade should get. The three cannot add up to more than 100%. When a slider stops, lower another one to free up time.</p>
+      ${GRADES.map(g => `<div class="grade-row">
+        <label for="slider-${g.id}">${g.name}</label>
+        <input type="range" id="slider-${g.id}" data-g="${g.id}" min="0" max="100" step="${GRADE_STEP}" value="0" aria-describedby="grade-left">
+        <output class="grade-pct" for="slider-${g.id}" id="pct-${g.id}">0%</output>
+      </div>`).join('')}
+      <p class="grade-left" id="grade-left"></p>
+    </section>
+    <h2 class="rank-step">2 · Which resources?</h2>
     <details class="howto"><summary>How to rank</summary>
       <p><b>Add</b> a resource from the list. It goes into the next open place in your top ${TOP_N}.</p>
       <p><b>Move</b> it with the up and down arrows, or drag it to a new place.</p>
@@ -808,6 +824,35 @@ function viewRank() {
   });
   otherEl.addEventListener('input', () => debounce('rank-other', () => track(store.saveRank({ other: otherEl.value }), saveState)));
 
+  // Grade sliders. A slider cannot go past what the other two leave free.
+  let grades = gradeVals(null);
+  const gradeState = app.querySelector('#grade-state');
+  const sliders = [...app.querySelectorAll('.grade-row input[type="range"]')];
+  const paintGrades = () => {
+    const total = gradeSum(grades);
+    sliders.forEach(el => {
+      const g = el.dataset.g, cap = 100 - (total - grades[g]);
+      el.value = grades[g];
+      el.style.setProperty('--val', grades[g] + '%');
+      el.style.setProperty('--cap', cap + '%');
+      el.setAttribute('aria-valuetext', `${grades[g]}%. Up to ${cap}% available.`);
+      app.querySelector('#pct-' + g).textContent = grades[g] + '%';
+    });
+    const left = 100 - total;
+    app.querySelector('#grade-left').innerHTML = left > 0
+      ? `Total <b>${total}%</b> · <b>${left}%</b> not yet given to a grade.`
+      : `Total <b>100%</b> · All of the time is given out. Lower one grade to raise another.`;
+  };
+  sliders.forEach(el => el.addEventListener('input', () => {
+    const g = el.dataset.g;
+    const others = gradeSum(grades) - grades[g];
+    grades = { ...grades, [g]: Math.min(Number(el.value) || 0, 100 - others) };
+    paintGrades();
+    gradeState.textContent = 'Saving…';
+    debounce('rank-grades', () => track(store.saveRank({ grades: { ...grades } }), gradeState), 400);
+  }));
+  paintGrades();
+
   paint();
   unsubs.push(store.watchMyRank(d => {
     if (!mineLoaded || !pending.size) {
@@ -815,6 +860,7 @@ function viewRank() {
       paint();
     }
     if (canPaint(otherEl, 'rank-other')) otherEl.value = (d && d.other) || '';
+    if (!pending.has('rank-grades') && !sliders.includes(document.activeElement)) { grades = gradeVals(d && d.grades); paintGrades(); }
     mineLoaded = true;
   }));
 }
@@ -838,9 +884,13 @@ function viewRankRoom() {
   app.innerHTML = `
     <div class="pagehead"><div>
       <span class="step-tag">Resource priorities</span>
-      <h1>The room's ranking</h1></div>
-      <div class="row"><a class="btn" href="#/rank">Change my ranking</a><button type="button" class="btn" id="dl-ranks">Rankings (CSV)</button></div>
+      <h1>The room's results</h1></div>
+      <div class="row"><a class="btn" href="#/rank">Change my answers</a><button type="button" class="btn" id="dl-ranks">Results (CSV)</button></div>
     </div>
+    <h2>Which grades?</h2>
+    <p class="lede" id="grade-count"></p>
+    <div class="grade-room" id="grade-room"></div>
+    <h2>Which resources?</h2>
     <p class="lede" id="rank-count"></p>
     <p class="muted">A first place earns ${TOP_N} points, a second place ${TOP_N - 1}, down to 1 point for place ${TOP_N}. It updates as people rank.</p>
     <div class="kind-totals" id="kind-totals"></div>
@@ -849,7 +899,20 @@ function viewRankRoom() {
       <tbody id="rank-body"></tbody></table></div>
     <h2>Something missing?</h2>
     <ul class="rank-suggest" id="rank-suggest"></ul>`;
+  const gradeStats = () => {
+    const ppl = list.map(d => gradeVals(d.grades)).filter(v => gradeSum(v) > 0);
+    const avg = Object.fromEntries(GRADES.map(g => [g.id, ppl.length ? Math.round(ppl.reduce((t, v) => t + v[g.id], 0) / ppl.length) : 0]));
+    const most = Object.fromEntries(GRADES.map(g => [g.id, ppl.filter(v => v[g.id] > 0 && v[g.id] === Math.max(...GRADES.map(x => v[x.id]))).length]));
+    return { ppl, avg, most };
+  };
   const paint = () => {
+    const gs = gradeStats();
+    app.querySelector('#grade-count').innerHTML = `<b>${gs.ppl.length}</b> ${gs.ppl.length === 1 ? 'person has' : 'people have'} split the time. Each bar is the average share.`;
+    app.querySelector('#grade-room').innerHTML = GRADES.map(g => `<div class="grade-room-row">
+      <span class="grade-room-name">${g.name}</span>
+      <div class="pbar grade-bar"><span style="width:${gs.avg[g.id]}%"></span></div>
+      <span class="grade-room-pct">${gs.avg[g.id]}%</span>
+      <span class="muted grade-room-most">Most time for ${gs.most[g.id]} of ${gs.ppl.length}</span></div>`).join('');
     const { people, rows } = rankScores(list);
     const max = Math.max(1, ...rows.map(r => r.points));
     app.querySelector('#rank-count').innerHTML = `<b>${people.length}</b> ${people.length === 1 ? 'person has' : 'people have'} ranked.`;
@@ -871,9 +934,15 @@ function viewRankRoom() {
     const out = [['resource_id', 'resource', 'kind', 'points', 'in_top_six', 'ranked_first']];
     rows.forEach(r => out.push([r.id, r.name, r.kind, r.points, r.top, r.first]));
     out.push([]);
-    out.push(['person', ...Array.from({ length: TOP_N }, (_, i) => `place_${i + 1}`), 'something_missing', 'updated_at']);
-    people.forEach((d, i) => out.push([`P${String(i + 1).padStart(2, '0')}`, ...Array.from({ length: TOP_N }, (_, j) => RS[d.order[j]] ? RS[d.order[j]].name : ''), d.other || '', tsString(d.updatedAt)]));
-    save(`${SESSION_ID}-resource-ranking-${stamp}.csv`, csv(out), 'text/csv;charset=utf-8');
+    out.push([]);
+    const gs = gradeStats();
+    out.push(['grade', 'average_share_percent', 'most_time_count', 'people']);
+    GRADES.forEach(g => out.push([g.name, gs.avg[g.id], gs.most[g.id], gs.ppl.length]));
+    out.push([]);
+    const everyone = list.filter(d => (Array.isArray(d.order) && d.order.length) || gradeSum(gradeVals(d.grades)) > 0 || (d.other || '').trim());
+    out.push(['person', ...GRADES.map(g => g.id + '_percent'), ...Array.from({ length: TOP_N }, (_, i) => `place_${i + 1}`), 'something_missing', 'updated_at']);
+    everyone.forEach((d, i) => { const v = gradeVals(d.grades); const o = d.order || []; out.push([`P${String(i + 1).padStart(2, '0')}`, ...GRADES.map(g => v[g.id]), ...Array.from({ length: TOP_N }, (_, j) => RS[o[j]] ? RS[o[j]].name : ''), d.other || '', tsString(d.updatedAt)]); });
+    save(`${SESSION_ID}-resource-priorities-${stamp}.csv`, csv(out), 'text/csv;charset=utf-8');
   };
   paint();
   unsubs.push(store.watchRanks(l => { list = l; paint(); }));
