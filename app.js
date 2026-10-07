@@ -11,6 +11,10 @@ const ST = DATA.statements;
 const topicsFor = t => TOPICS.filter(x => x.table === t);
 const idsFor = t => topicsFor(t).map(x => x.id);
 const topicOrder = TOPICS.map(t => t.id);
+const MAIN_TABLES = TABLES.filter(t => !DATA.tables[t].optional);
+const OPT_TABLES = TABLES.filter(t => DATA.tables[t].optional);
+// Version A unit label for a topic, such as "Unit 2" or "Units 2–3".
+const unitLabel = t => !t.units || !t.units.length ? '' : (t.units.length === 1 ? `Unit ${t.units[0]}` : `Units ${t.units[0]}–${t.units[t.units.length - 1]}`);
 
 const OLD = [['7', 'Gr 7'], ['8', 'Gr 8'], ['9', 'Gr 9'], ['none', 'Not taught']];
 const LEVELS = [['R', 'Ready'], ['U', 'Read up'], ['L', 'Learn']];
@@ -102,6 +106,7 @@ function topicHtml(t) {
   const n = t.codes.length + t.also.length;
   const row = code => `<li>${codeHtml(code)}<div class="stmt">${esc(ST[code].text)}</div></li>`;
   return `<div class="topic-top"><span class="tid" aria-hidden="true">${esc(t.id)}</span><h3 class="tname">${esc(t.name)}</h3></div>
+    <div class="unit-tag">${esc(unitLabel(t))}</div>
     <p class="tdesc">${esc(t.desc)}</p>
     <details class="stmts"><summary>Curriculum statements (${n})</summary>
       ${t.codes.length ? `<ul class="stmt-list">${t.codes.map(row).join('')}</ul>` : ''}
@@ -117,7 +122,7 @@ function viewStart() {
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <h2>Choose your table</h2>
     <div class="table-grid">
-      ${TABLES.map(t => `
+      ${MAIN_TABLES.map(t => `
         <section class="table-card" aria-labelledby="tc-${t}">
           <div class="head"><span class="letter" aria-hidden="true">${t}</span>
             <div><h3 id="tc-${t}">Table ${t}${last === t ? ' <span class="muted">(you)</span>' : ''}</h3><div class="count">${esc(DATA.tables[t].name)} · ${topicsFor(t).length} topics</div></div></div>
@@ -130,12 +135,17 @@ function viewStart() {
           </div>
         </section>`).join('')}
     </div>
-    <h2>Four steps</h2>
+    ${OPT_TABLES.map(t => `
+      <section class="optional-card" aria-labelledby="oc-${t}">
+        <div><h3 id="oc-${t}">Optional · ${esc(DATA.tables[t].name)}</h3>
+          <p class="muted">We are already teaching Unit 1. Rate these ${topicsFor(t).length} topics only if your table finishes early.</p></div>
+        <div class="row"><a class="btn" href="#/rate/${t}">Rate Unit 1</a><a class="btn" href="#/table/${t}">Review Unit 1</a></div>
+      </section>`).join('')}
+    <h2>Three steps</h2>
     <ol class="lede">
       <li><b>On your own · 25 min.</b> Open <b>Rate my curriculum</b> on your own laptop and rate your table’s topics.</li>
       <li><b>As a group · 25 min.</b> Close your laptops. Open <b>Review your ratings</b> on one screen. Agree on a verdict for each topic.</li>
-      <li><b>Briefs · 15 min.</b> Write a brief for the two or three truly new items that matter most.</li>
-      <li><b>With the room · 15 min.</b> Each table shares its top items.</li>
+      <li><b>With the room · 20 min.</b> We look at every table’s results together and decide where to start.</li>
     </ol>`;
 }
 
@@ -480,6 +490,14 @@ function viewRoom() {
     </div>
     <h2>Topics</h2>
     <div class="toolbar">
+      <label>Units <select class="select" id="unit">
+        <option value="234">Units 2 to 4</option>
+        <option value="2">Unit 2</option>
+        <option value="3">Unit 3</option>
+        <option value="4">Unit 4</option>
+        <option value="1">Unit 1 (optional)</option>
+        <option value="all">All units</option>
+      </select></label>
       <label>Show <select class="select" id="filter">
         <option value="all">All topics</option>
         <option value="new">Table said truly or partly new</option>
@@ -487,11 +505,12 @@ function viewRoom() {
       </select></label>
       <label>Sort <select class="select" id="sort">
         <option value="learn">Most teachers must learn it</option>
+        <option value="unit">Unit order</option>
         <option value="curr">Topic order</option>
       </select></label>
     </div>
     <div class="tablewrap"><table class="sum">
-      <thead><tr><th>Topic</th><th>Name</th><th>Table</th><th>Rated</th><th>Most teachers: Learn</th><th>Me: Learn</th><th>Old program</th><th>Verdict</th><th>Table note</th></tr></thead>
+      <thead><tr><th>Topic</th><th>Name</th><th>Unit</th><th>Rated</th><th>Most teachers: Learn</th><th>Me: Learn</th><th>Old program</th><th>Verdict</th><th>Table note</th></tr></thead>
       <tbody id="sum-body"></tbody></table></div>
     <h2>Briefs</h2>
     <div id="room-briefs"></div>
@@ -502,7 +521,7 @@ function viewRoom() {
   const pct = x => `${Math.round(x * 100)}%`;
   const paint = () => {
     // Tiles
-    app.querySelector('#tiles').innerHTML = TABLES.map(t => {
+    app.querySelector('#tiles').innerHTML = [...MAIN_TABLES, ...OPT_TABLES].map(t => {
       const cs = idsFor(t);
       const rs = ratings.filter(r => r.table === t);
       const done = rs.reduce((s, r) => s + cs.filter(c => { const x = r.r && r.r[c]; return x && x.me && x.most; }).length, 0);
@@ -510,28 +529,32 @@ function viewRoom() {
       const v = (tables[t] && tables[t].v) || {};
       const verdicts = cs.filter(c => v[c] && v[c].verdict).length;
       const nb = briefs.filter(b => b.table === t).length;
-      return `<div class="tile"><div class="row"><span class="letter" aria-hidden="true">${t}</span><b>Table ${t}</b></div>
+      return `<div class="tile"><div class="row"><span class="letter" aria-hidden="true">${t}</span><b>Table ${t}${DATA.tables[t].optional ? ' · optional' : ''}</b></div>
         <div class="num">${rs.length}</div><div class="lbl">people rating · ${possible ? pct(done / possible) : '0%'} complete</div>
         <div class="lbl">${verdicts} of ${cs.length} verdicts · ${nb} ${nb === 1 ? 'brief' : 'briefs'}</div></div>`;
     }).join('');
     // Summary
     const filter = app.querySelector('#filter').value;
     const sort = app.querySelector('#sort').value;
+    const unit = app.querySelector('#unit').value;
     let rows = topicOrder.map(code => {
       const t = TP[code].table;
       const a = aggregate(ratings.filter(r => r.table === t), code);
       const v = ((tables[t] && tables[t].v) || {})[code] || {};
       return { code, t, a, v };
     });
+    if (unit === '234') rows = rows.filter(r => (TP[r.code].units || []).some(u => u >= 2));
+    else if (unit !== 'all') rows = rows.filter(r => (TP[r.code].units || []).includes(Number(unit)));
     if (filter === 'new') rows = rows.filter(r => r.v.verdict === 'new' || r.v.verdict === 'partly');
     if (filter === 'learn') rows = rows.filter(r => r.a.mostN && r.a.learnShare >= 0.5);
     if (sort === 'learn') rows.sort((x, y) => y.a.learnShare - x.a.learnShare || y.a.mostN - x.a.mostN);
+    if (sort === 'unit') rows.sort((x, y) => (TP[x.code].units[0] || 9) - (TP[y.code].units[0] || 9) || topicOrder.indexOf(x.code) - topicOrder.indexOf(y.code));
     app.querySelector('#sum-body').innerHTML = rows.map(({ code, t, a, v }) => {
       const old = OLD.filter(([k]) => a.o[k]).map(([k, l]) => `${l} ${a.o[k]}`).join(', ') || '<span class="muted">None ticked</span>';
       return `<tr>
         <td><b>${esc(code)}</b></td>
         <td class="stmt-cell"><b>${esc(TP[code].name)}</b><div class="muted">${esc([...TP[code].codes].join(', ') || 'Also in ' + TP[code].also.join(', '))}</div></td>
-        <td>${t}</td>
+        <td>${esc(unitLabel(TP[code]))}<div class="muted">Table ${t}</div></td>
         <td class="num">${a.n}</td>
         <td class="num">${a.mostN ? `${a.most.L} of ${a.mostN} · ${pct(a.learnShare)}` : '–'}</td>
         <td class="num">${a.meN ? `${a.me.L} of ${a.meN}` : '–'}</td>
@@ -557,6 +580,7 @@ function viewRoom() {
   };
   app.querySelector('#filter').onchange = paint;
   app.querySelector('#sort').onchange = paint;
+  app.querySelector('#unit').onchange = paint;
   unsubs.push(store.watchRatings(null, l => { ratings = l; paint(); }));
   unsubs.push(store.watchTables(d => { tables = d || {}; paint(); }));
   unsubs.push(store.watchBriefs(null, l => { briefs = l; paint(); }));
@@ -596,9 +620,9 @@ function download(kind, ratings, tables, briefs) {
   // Topic columns shared by every export. ref is the document analysis, kept for comparison with what teachers said.
   const meta = id => {
     const t = TP[id];
-    return [id, t.name, t.table, DATA.tables[t.table].name, t.codes.join('; '), t.also.join('; '), t.ref || ''];
+    return [id, t.name, unitLabel(t), t.table, DATA.tables[t.table].name, t.codes.join('; '), t.also.join('; '), t.ref || ''];
   };
-  const metaHead = ['topic_id', 'topic', 'table', 'table_name', 'statements', 'also_touches', 'document_analysis'];
+  const metaHead = ['topic_id', 'topic', 'unit', 'table', 'table_name', 'statements', 'also_touches', 'document_analysis'];
   if (kind === 'ratings') {
     const pid = participantIds(ratings);
     const rows = [['session', 'participant', 'participant_table', ...metaHead, 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me', 'most_teachers', 'note', 'updated_at']];
@@ -622,14 +646,14 @@ function download(kind, ratings, tables, briefs) {
         a.me.R, a.me.U, a.me.L, a.most.R, a.most.U, a.most.L, a.mostN ? a.learnShare.toFixed(2) : '',
         VERDICT_LABEL[v.verdict] || '', v.note || '', a.notes.join(' | ')]);
     });
-    DATA.crosscutting.forEach(x => rows.push(['', 'Skill, not rated', '', '', x.code, '', '', x.why]));
+    DATA.crosscutting.forEach(x => rows.push(['', 'Skill, not rated', (x.units || []).map(u => 'Unit ' + u).join(', '), '', '', x.code, '', '', x.why]));
     save(`${base}-summary-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'verdicts') {
-    const rows = [['table', 'topic_id', 'topic', 'verdict', 'note']];
+    const rows = [['table', 'topic_id', 'topic', 'unit', 'verdict', 'note']];
     TABLES.forEach(t => {
       const v = (tables[t] && tables[t].v) || {};
-      idsFor(t).forEach(id => { const x = v[id] || {}; rows.push([t, id, TP[id].name, VERDICT_LABEL[x.verdict] || '', x.note || '']); });
-      if (tables[t] && tables[t].disagreed) rows.push([t, '', 'Where we disagreed', '', tables[t].disagreed]);
+      idsFor(t).forEach(id => { const x = v[id] || {}; rows.push([t, id, TP[id].name, unitLabel(TP[id]), VERDICT_LABEL[x.verdict] || '', x.note || '']); });
+      if (tables[t] && tables[t].disagreed) rows.push([t, '', 'Where we disagreed', '', '', tables[t].disagreed]);
     });
     save(`${base}-verdicts-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
   } else if (kind === 'briefs') {
