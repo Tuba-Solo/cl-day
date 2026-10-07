@@ -2,11 +2,13 @@
 // Statements are verbatim from Alberta Education Draft Social Studies 7 (June 2026).
 // Each statement has one home topic (codes). 'also' lists statements that partly touch a topic.
 // 'ref' is the Oct 2026 document analysis of old-program coverage. It is used in exports only, never shown to raters.
+// 'units' = the Version A scope and sequence units a topic's statements sit in. Table A (Unit 1) is optional on Oct 8.
 export const DATA = {
  "session": "cl-2026-10-08",
  "tables": {
   "A": {
-   "name": "Confederation and the system of government"
+   "name": "Unit 1 · Confederation and the system of government",
+   "optional": true
   },
   "B": {
    "name": "Expansion, First Nations, Métis and the railway"
@@ -34,7 +36,10 @@ export const DATA = {
    "also": [
     "LO.1 K.9"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A2",
@@ -46,7 +51,10 @@ export const DATA = {
     "LO.1 SP.2"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A3",
@@ -66,7 +74,10 @@ export const DATA = {
     "LO.4 SP.1"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A4",
@@ -82,7 +93,10 @@ export const DATA = {
    "also": [
     "LO.4 K.5"
    ],
-   "ref": "From old Grade 9"
+   "ref": "From old Grade 9",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A5",
@@ -98,7 +112,10 @@ export const DATA = {
     "LO.4 K.6",
     "LO.4 SP.4"
    ],
-   "ref": "From old Grade 9"
+   "ref": "From old Grade 9",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A6",
@@ -113,7 +130,10 @@ export const DATA = {
     "LO.4 K.6",
     "LO.4 SP.4"
    ],
-   "ref": "From old Grade 9"
+   "ref": "From old Grade 9",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A7",
@@ -128,7 +148,10 @@ export const DATA = {
     "LO.4 K.9",
     "LO.4 K.12"
    ],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    1
+   ]
   },
   {
    "id": "A8",
@@ -146,7 +169,10 @@ export const DATA = {
     "LO.4 K.2",
     "LO.5 K.11"
    ],
-   "ref": "From old Grade 9"
+   "ref": "From old Grade 9",
+   "units": [
+    1
+   ]
   },
   {
    "id": "B1",
@@ -163,7 +189,10 @@ export const DATA = {
     "LO.1 K.2",
     "LO.1 SP.7"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B2",
@@ -178,7 +207,10 @@ export const DATA = {
    "also": [
     "LO.1 K.2"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B3",
@@ -192,7 +224,10 @@ export const DATA = {
    "also": [
     "LO.1 SP.7"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B4",
@@ -205,7 +240,10 @@ export const DATA = {
    "also": [
     "LO.1 SP.7"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B5",
@@ -219,7 +257,10 @@ export const DATA = {
     "LO.1 SP.7",
     "LO.2 K.2"
    ],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B6",
@@ -232,7 +273,10 @@ export const DATA = {
     "LO.1 SP.7"
    ],
    "also": [],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "B7",
@@ -246,7 +290,11 @@ export const DATA = {
    "also": [
     "LO.1 SP.7"
    ],
-   "ref": "From old Grade 9"
+   "ref": "From old Grade 9",
+   "units": [
+    1,
+    2
+   ]
   },
   {
    "id": "B8",
@@ -261,7 +309,10 @@ export const DATA = {
     "LO.1 K.17",
     "LO.3 K.4"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "C1",
@@ -276,7 +327,11 @@ export const DATA = {
    "also": [
     "LO.1 K.16"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2,
+    3
+   ]
   },
   {
    "id": "C2",
@@ -290,7 +345,10 @@ export const DATA = {
    "also": [
     "LO.1 K.16"
    ],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "C3",
@@ -305,7 +363,10 @@ export const DATA = {
    "also": [
     "LO.1 K.19"
    ],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "C4",
@@ -318,7 +379,10 @@ export const DATA = {
    "also": [
     "LO.5 SP.4"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    3
+   ]
   },
   {
    "id": "C5",
@@ -333,7 +397,10 @@ export const DATA = {
     "LO.5 K.6",
     "LO.5 SP.4"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    3
+   ]
   },
   {
    "id": "C6",
@@ -347,7 +414,10 @@ export const DATA = {
    "also": [
     "LO.5 SP.3"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    3
+   ]
   },
   {
    "id": "C7",
@@ -360,7 +430,10 @@ export const DATA = {
    "also": [
     "LO.5 SP.4"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    3
+   ]
   },
   {
    "id": "C8",
@@ -371,7 +444,10 @@ export const DATA = {
     "LO.5 K.11"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    3
+   ]
   },
   {
    "id": "C9",
@@ -385,7 +461,10 @@ export const DATA = {
     "LO.5 SP.5"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    3
+   ]
   },
   {
    "id": "D1",
@@ -399,7 +478,10 @@ export const DATA = {
     "LO.2 SP.1"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D2",
@@ -415,7 +497,10 @@ export const DATA = {
    "also": [
     "LO.2 K.1"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D3",
@@ -428,7 +513,10 @@ export const DATA = {
    "also": [
     "LO.2 K.4"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D4",
@@ -440,7 +528,10 @@ export const DATA = {
     "LO.2 SP.6"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D5",
@@ -453,7 +544,10 @@ export const DATA = {
     "LO.2 SP.11"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D6",
@@ -465,7 +559,10 @@ export const DATA = {
     "LO.2 K.6",
     "LO.2 SP.11"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D7",
@@ -476,7 +573,10 @@ export const DATA = {
     "LO.2 K.7"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D8",
@@ -489,7 +589,10 @@ export const DATA = {
     "LO.2 SP.10"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "D9",
@@ -503,7 +606,10 @@ export const DATA = {
    "also": [
     "LO.2 K.5"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "E1",
@@ -518,7 +624,10 @@ export const DATA = {
     "LO.3 SP.3"
    ],
    "also": [],
-   "ref": "Familiar"
+   "ref": "Familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "E2",
@@ -533,7 +642,10 @@ export const DATA = {
     "LO.3 SP.7"
    ],
    "also": [],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    2
+   ]
   },
   {
    "id": "E3",
@@ -547,7 +659,10 @@ export const DATA = {
    "also": [
     "LO.3 K.3"
    ],
-   "ref": "Partly familiar"
+   "ref": "Partly familiar",
+   "units": [
+    4
+   ]
   },
   {
    "id": "E4",
@@ -559,7 +674,10 @@ export const DATA = {
     "LO.3 SP.5"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "E5",
@@ -574,7 +692,10 @@ export const DATA = {
    "also": [
     "LO.3 K.7"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "E6",
@@ -588,7 +709,10 @@ export const DATA = {
    "also": [
     "LO.3 K.11"
    ],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   },
   {
    "id": "E7",
@@ -600,21 +724,33 @@ export const DATA = {
     "LO.3 SP.6"
    ],
    "also": [],
-   "ref": "New"
+   "ref": "New",
+   "units": [
+    4
+   ]
   }
  ],
  "crosscutting": [
   {
    "code": "LO.1 SP.9",
-   "why": "Asks students to pull together government decisions from across the whole outcome. It has no content of its own."
+   "why": "Asks students to pull together government decisions from across the whole outcome. It has no content of its own.",
+   "units": [
+    2
+   ]
   },
   {
    "code": "LO.5 SP.6",
-   "why": "A skill, judging whether policies were fair to different groups. It applies to every exclusion and settlement topic."
+   "why": "A skill, judging whether policies were fair to different groups. It applies to every exclusion and settlement topic.",
+   "units": [
+    3
+   ]
   },
   {
    "code": "LO.5 SP.7",
-   "why": "A skill, telling fact from opinion in historical accounts. It applies to any source on riots or immigration policy."
+   "why": "A skill, telling fact from opinion in historical accounts. It applies to any source on riots or immigration policy.",
+   "units": [
+    3
+   ]
   }
  ],
  "statements": {
@@ -1160,5 +1296,6 @@ export const DATA = {
   "LO.3": "Students examine the Canadian government’s role in developing the economy post-Confederation.",
   "LO.4": "Students examine how the Quebec Conference, London Conference, and the British North America Act (1867) led to the creation of Canada.",
   "LO.5": "Students examine immigration in post-Confederation Canada."
- }
+ },
+ "scope": "Version A scope and sequence"
 };
