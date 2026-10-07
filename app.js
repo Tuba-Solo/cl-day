@@ -48,6 +48,12 @@ const RS = Object.fromEntries(RESOURCES.map(x => [x.id, x]));
 // Share of the developer's time by grade. The three together cannot go over 100.
 const GRADES = [{ id: 'g7', name: 'Social Studies 7' }, { id: 'g8', name: 'Social Studies 8' }, { id: 'g9', name: 'Social Studies 9' }];
 const GRADE_STEP = 5;
+// When the developer should start. People pick one.
+const WHEN = [
+  { id: 's2-2627', name: 'Semester 2, 2026-2027', desc: 'Before the curriculum update' },
+  { id: 's1-2728', name: 'Semester 1, 2027-2028', desc: 'After the curriculum update' }
+];
+const WS = Object.fromEntries(WHEN.map(x => [x.id, x]));
 const gradeVals = g => Object.fromEntries(GRADES.map(x => [x.id, Math.max(0, Math.min(100, Number((g || {})[x.id]) || 0))]));
 const gradeSum = v => GRADES.reduce((t, x) => t + (v[x.id] || 0), 0);
 const TOP_N = 6;
@@ -152,7 +158,7 @@ function viewStart() {
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <section class="prio-card" aria-labelledby="prio-h">
       <div><h2 id="prio-h">Resource priorities</h2>
-        <p>If we hire a Social Studies resource developer, where should their time go? Split it across the grades and rank your top six resources.</p></div>
+        <p>If we hire a Social Studies resource developer, where should their time go? Split it across the grades, pick when they start and rank your top six resources.</p></div>
       <div class="row"><a class="btn primary" href="#/rank">Set your priorities</a><a class="btn" href="#/rank/room">See the room's results</a></div>
     </section>
     <h2>Choose your table</h2>
@@ -711,7 +717,7 @@ function viewRank() {
       <h1>Set your priorities</h1></div>
       <div class="row"><a class="btn" href="#/rank/room">See the room's results</a></div>
     </div>
-    <p class="lede">If we hire a Social Studies resource developer, where should their time go? First split it across the grades. Then pick your top ${TOP_N} resources and put them in order. Everything saves as you go. No names are collected.</p>
+    <p class="lede">If we hire a Social Studies resource developer, where should their time go? Answer the three parts below. Everything saves as you go. No names are collected.</p>
     <section class="grade-card" aria-labelledby="grades-h">
       <div class="rank-head"><h2 id="grades-h">1 · Which grades?</h2><span class="muted" id="grade-state" aria-live="polite"></span></div>
       <p class="muted">Drag each slider to the share of the developer's time that grade should get. The three cannot add up to more than 100%. When a slider stops, lower another one to free up time.</p>
@@ -722,7 +728,14 @@ function viewRank() {
       </div>`).join('')}
       <p class="grade-left" id="grade-left"></p>
     </section>
-    <h2 class="rank-step">2 · Which resources?</h2>
+    <section class="grade-card when-card" aria-labelledby="when-h">
+      <div class="rank-head"><h2 id="when-h">2 · When should they start?</h2><span class="muted" id="when-state" aria-live="polite"></span></div>
+      <p class="muted">Pick one.</p>
+      <div class="when-opts" role="radiogroup" aria-labelledby="when-h">
+        ${WHEN.map(w => `<label class="when-opt"><input type="radio" name="when" value="${w.id}"><span><b>${w.name}</b><span class="muted">${w.desc}</span></span></label>`).join('')}
+      </div>
+    </section>
+    <h2 class="rank-step">3 · Which resources?</h2>
     <details class="howto"><summary>How to rank</summary>
       <p><b>Add</b> a resource from the list. It goes into the next open place in your top ${TOP_N}.</p>
       <p><b>Move</b> it with the up and down arrows, or drag it to a new place.</p>
@@ -853,6 +866,18 @@ function viewRank() {
   }));
   paintGrades();
 
+  // When to start. One choice, saved straight away.
+  const whenState = app.querySelector('#when-state');
+  const whenEls = [...app.querySelectorAll('input[name="when"]')];
+  let whenSaving = false;
+  const paintWhen = w => whenEls.forEach(el => { el.checked = el.value === w; el.closest('.when-opt').classList.toggle('on', el.value === w); });
+  whenEls.forEach(el => el.addEventListener('change', () => {
+    if (!el.checked || !WS[el.value]) return;
+    paintWhen(el.value);
+    whenSaving = true;
+    track(store.saveRank({ when: el.value }), whenState).finally(() => { whenSaving = false; });
+  }));
+
   paint();
   unsubs.push(store.watchMyRank(d => {
     if (!mineLoaded || !pending.size) {
@@ -861,6 +886,7 @@ function viewRank() {
     }
     if (canPaint(otherEl, 'rank-other')) otherEl.value = (d && d.other) || '';
     if (!pending.has('rank-grades') && !sliders.includes(document.activeElement)) { grades = gradeVals(d && d.grades); paintGrades(); }
+    if (!whenSaving) paintWhen(d && WS[d.when] ? d.when : null);
     mineLoaded = true;
   }));
 }
@@ -890,6 +916,9 @@ function viewRankRoom() {
     <h2>Which grades?</h2>
     <p class="lede" id="grade-count"></p>
     <div class="grade-room" id="grade-room"></div>
+    <h2>When should they start?</h2>
+    <p class="lede" id="when-count"></p>
+    <div class="grade-room" id="when-room"></div>
     <h2>Which resources?</h2>
     <p class="lede" id="rank-count"></p>
     <p class="muted">A first place earns ${TOP_N} points, a second place ${TOP_N - 1}, down to 1 point for place ${TOP_N}. It updates as people rank.</p>
@@ -905,7 +934,18 @@ function viewRankRoom() {
     const most = Object.fromEntries(GRADES.map(g => [g.id, ppl.filter(v => v[g.id] > 0 && v[g.id] === Math.max(...GRADES.map(x => v[x.id]))).length]));
     return { ppl, avg, most };
   };
+  const whenStats = () => {
+    const picks = list.map(d => d.when).filter(w => WS[w]);
+    return { n: picks.length, counts: Object.fromEntries(WHEN.map(w => [w.id, picks.filter(x => x === w.id).length])) };
+  };
   const paint = () => {
+    const ws = whenStats();
+    app.querySelector('#when-count').innerHTML = `<b>${ws.n}</b> ${ws.n === 1 ? 'person has' : 'people have'} picked.`;
+    app.querySelector('#when-room').innerHTML = WHEN.map(w => `<div class="grade-room-row">
+      <span class="grade-room-name">${w.name}<span class="muted when-sub">${w.desc}</span></span>
+      <div class="pbar grade-bar"><span style="width:${ws.n ? Math.round(ws.counts[w.id] / ws.n * 100) : 0}%"></span></div>
+      <span class="grade-room-pct">${ws.counts[w.id]}</span>
+      <span class="muted grade-room-most">${ws.n ? Math.round(ws.counts[w.id] / ws.n * 100) : 0}% of picks</span></div>`).join('');
     const gs = gradeStats();
     app.querySelector('#grade-count').innerHTML = `<b>${gs.ppl.length}</b> ${gs.ppl.length === 1 ? 'person has' : 'people have'} split the time. Each bar is the average share.`;
     app.querySelector('#grade-room').innerHTML = GRADES.map(g => `<div class="grade-room-row">
@@ -939,9 +979,13 @@ function viewRankRoom() {
     out.push(['grade', 'average_share_percent', 'most_time_count', 'people']);
     GRADES.forEach(g => out.push([g.name, gs.avg[g.id], gs.most[g.id], gs.ppl.length]));
     out.push([]);
-    const everyone = list.filter(d => (Array.isArray(d.order) && d.order.length) || gradeSum(gradeVals(d.grades)) > 0 || (d.other || '').trim());
-    out.push(['person', ...GRADES.map(g => g.id + '_percent'), ...Array.from({ length: TOP_N }, (_, i) => `place_${i + 1}`), 'something_missing', 'updated_at']);
-    everyone.forEach((d, i) => { const v = gradeVals(d.grades); const o = d.order || []; out.push([`P${String(i + 1).padStart(2, '0')}`, ...GRADES.map(g => v[g.id]), ...Array.from({ length: TOP_N }, (_, j) => RS[o[j]] ? RS[o[j]].name : ''), d.other || '', tsString(d.updatedAt)]); });
+    const wst = whenStats();
+    out.push(['start', 'picks', 'people']);
+    WHEN.forEach(w => out.push([`${w.name} (${w.desc})`, wst.counts[w.id], wst.n]));
+    out.push([]);
+    const everyone = list.filter(d => (Array.isArray(d.order) && d.order.length) || gradeSum(gradeVals(d.grades)) > 0 || WS[d.when] || (d.other || '').trim());
+    out.push(['person', ...GRADES.map(g => g.id + '_percent'), 'start', ...Array.from({ length: TOP_N }, (_, i) => `place_${i + 1}`), 'something_missing', 'updated_at']);
+    everyone.forEach((d, i) => { const v = gradeVals(d.grades); const o = d.order || []; out.push([`P${String(i + 1).padStart(2, '0')}`, ...GRADES.map(g => v[g.id]), WS[d.when] ? WS[d.when].name : '', ...Array.from({ length: TOP_N }, (_, j) => RS[o[j]] ? RS[o[j]].name : ''), d.other || '', tsString(d.updatedAt)]); });
     save(`${SESSION_ID}-resource-priorities-${stamp}.csv`, csv(out), 'text/csv;charset=utf-8');
   };
   paint();
