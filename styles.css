@@ -250,3 +250,11 @@ details.stmts summary::-webkit-details-marker { display: none; }
   .grade-room-row { grid-template-columns: minmax(0, 1fr) 56px; }
   .grade-room-name, .grade-room-most { grid-column: 1 / -1; }
 }
+.when-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.when-opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--rule-strong); border-radius: var(--radius-md); background: #fff; cursor: pointer; }
+.when-opt input { width: 22px; height: 22px; flex: none; accent-color: var(--eips-dark); }
+.when-opt > span { display: flex; flex-direction: column; }
+.when-opt.on { border-color: var(--eips-dark); background: #e6f4f1; }
+.when-opt:focus-within { outline: 3px solid var(--blue); outline-offset: 2px; }
+.when-sub { display: block; font-weight: 400; font-size: 15px; }
+@media (max-width: 760px) { .when-opts { grid-template-columns: 1fr; } }
