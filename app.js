@@ -10,6 +10,8 @@ const TP = Object.fromEntries(TOPICS.map(t => [t.id, t]));
 const ST = DATA.statements;
 const topicsFor = t => TOPICS.filter(x => x.table === t);
 const idsFor = t => topicsFor(t).map(x => x.id);
+// A person rated table t if they saved anything for one of its topics. Each person has one record for all tables.
+const ratedTable = (r, t) => idsFor(t).some(c => r.r && r.r[c]);
 const topicOrder = TOPICS.map(t => t.id);
 const MAIN_TABLES = TABLES.filter(t => !DATA.tables[t].optional);
 const OPT_TABLES = TABLES.filter(t => DATA.tables[t].optional);
@@ -406,7 +408,7 @@ function viewTable(T) {
 
   renderCards();
 
-  unsubs.push(store.watchRatings(T, list => { ratings = list; paintStats(); }));
+  unsubs.push(store.watchRatings(null, list => { ratings = list.filter(r => ratedTable(r, T)); paintStats(); }));
   unsubs.push(store.watchTable(T, d => { tableDoc = d || {}; paintVerdicts(); }));
 
   app.querySelector('#sort-talk').onclick = () => {
@@ -563,7 +565,7 @@ function viewRoom() {
     // Tiles
     app.querySelector('#tiles').innerHTML = [...MAIN_TABLES, ...OPT_TABLES].map(t => {
       const cs = idsFor(t);
-      const rs = ratings.filter(r => r.table === t);
+      const rs = ratings.filter(r => ratedTable(r, t));
       const done = rs.reduce((s, r) => s + cs.filter(c => { const x = r.r && r.r[c]; return x && x.me && x.most; }).length, 0);
       const possible = rs.length * cs.length;
       const v = (tables[t] && tables[t].v) || {};
@@ -579,7 +581,7 @@ function viewRoom() {
     const unit = app.querySelector('#unit').value;
     let rows = topicOrder.map(code => {
       const t = TP[code].table;
-      const a = aggregate(ratings.filter(r => r.table === t), code);
+      const a = aggregate(ratings, code);
       const v = ((tables[t] && tables[t].v) || {})[code] || {};
       return { code, t, a, v };
     });
@@ -646,10 +648,8 @@ function save(name, text, type) {
 }
 function participantIds(ratings) {
   const ids = {};
-  TABLES.forEach(t => {
-    ratings.filter(r => r.table === t).sort((a, b) => a.id.localeCompare(b.id)).forEach((r, i) => {
-      ids[r.id] = `${t}${String(i + 1).padStart(2, '0')}`;
-    });
+  [...ratings].sort((a, b) => a.id.localeCompare(b.id)).forEach((r, i) => {
+    ids[r.id] = `P${String(i + 1).padStart(2, '0')}`;
   });
   return ids;
 }
@@ -679,7 +679,7 @@ function download(kind, ratings, tables, briefs) {
     const rows = [[...metaHead, 'description', 'raters', 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me_ready', 'me_read_up', 'me_learn', 'most_ready', 'most_read_up', 'most_learn', 'most_learn_share', 'verdict', 'verdict_note', 'rater_notes']];
     topicOrder.forEach(id => {
       const t = TP[id].table;
-      const a = aggregate(ratings.filter(r => r.table === t), id);
+      const a = aggregate(ratings, id);
       const v = ((tables[t] && tables[t].v) || {})[id] || {};
       rows.push([...meta(id), TP[id].desc, a.n, a.o['7'], a.o['8'], a.o['9'], a.o.none,
         a.me.R, a.me.U, a.me.L, a.most.R, a.most.U, a.most.L, a.mostN ? a.learnShare.toFixed(2) : '',
