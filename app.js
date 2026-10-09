@@ -160,8 +160,8 @@ function viewStart() {
     <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
     <section class="prio-card" aria-labelledby="prio-h">
       <div><h2 id="prio-h">Resource Developer Priorities</h2>
-        <p>If we hire a Social Studies resource developer, where should their time go? Split it across the grades, pick when they start and rank your top six resources.</p></div>
-      <div class="row"><a class="btn primary" href="#/rank">Set your priorities</a><a class="btn" href="#/rank/room">See the room's results</a></div>
+        <p>If we hire a Social Studies resource developer, where should their time go? Responses closed on October 8. You can still see what the room said.</p></div>
+      <div class="row"><a class="btn primary" href="#/rank/room">See the room's results</a></div>
     </section>
     <h2>Choose your table</h2>
     <div class="table-grid">
@@ -911,7 +911,7 @@ function viewRankRoom() {
     <div class="pagehead"><div>
       <span class="step-tag">Resource Developer Priorities</span>
       <h1>The room's results</h1></div>
-      <div class="row"><a class="btn" href="#/rank">Change my answers</a><button type="button" class="btn" id="dl-ranks">Results (CSV)</button></div>
+      <div class="row"><button type="button" class="btn" id="dl-ranks">Results (CSV)</button></div>
     </div>
     <h2>Which grades?</h2>
     <p class="lede" id="grade-count"></p>
@@ -1003,7 +1003,7 @@ function route() {
   if (view === 'rate') viewRate(T);
   else if (view === 'table') viewTable(T);
   else if (view === 'room') viewRoom();
-  else if (view === 'rank') { if (arg === 'room') viewRankRoom(); else viewRank(); }
+  else if (view === 'rank') viewRankRoom(); // priorities closed Oct 8: results only
   else viewStart();
   app.focus({ preventScroll: true });
 }
