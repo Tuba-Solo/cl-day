@@ -1,11 +1,18 @@
 # What’s truly new? · CL day gap analysis site
 
-A static site for GitHub Pages. Leads rate the Grade 7 statements on their own laptops, each table works from one shared screen, and the facilitator view collects everything and downloads it as CSV.
+A static site for GitHub Pages. The start page asks for a grade.
 
-- `#/` start page. Leads choose their table.
+- **Grade 7** is the October 8 gap analysis. Leads rate their table's topics on their own laptops, each table works from one shared screen, and the facilitator view collects everything and downloads it as CSV.
+- **Grades 8 and 9** (added 2026-11-23) have no tables. Everyone rates every topic on their own laptop, and the results page shows the whole room and downloads it as CSV.
+
+- `#/` start page. Choose Grade 7, 8 or 9.
+- `#/7` Grade 7 start. Leads choose their table.
 - `#/rate/A` personal ratings for Table A (Step 1).
 - `#/table/A` the shared table screen. Live tallies, verdicts, where we disagreed, briefs (Steps 2 and 3).
-- `#/room` facilitator view. All tables, whole-course summary, downloads.
+- `#/room` Grade 7 facilitator view. All tables, whole-course summary, downloads.
+- `#/8`, `#/9` Grade 8 or 9 start. `#/8/rate` rates every topic. `#/8/results` is the results and downloads page (same for 9).
+
+Each grade has its own session in Firestore: `cl-2026-10-08` (Grade 7), `cl-2026-gr8` and `cl-2026-gr9`. They are set in `config.js`.
 
 With an empty `config.js` the site runs in **demo mode**. Answers stay in that one browser. Use it to look around. It collects nothing.
 
@@ -31,4 +38,6 @@ To practise without touching the real data, add `?session=practice` to the addre
 No names, emails or school names are collected. Each laptop gets a random anonymous ID from Firebase. Anyone with the link can read the session while the site is up, so take it down or change the rules to `allow read, write: if false;` after you download the data.
 
 ## Files
-`index.html`, `styles.css`, `app.js` (views), `store.js` (data layer), `data.js` (the 107 statements, verbatim from the June 2026 draft), `config.js` (your Firebase settings), `firebase-bundle.js` (Firebase SDK 10.14, bundled so nothing loads from a CDN), `firestore.rules`.
+`index.html`, `styles.css`, `app.js` (views), `store.js` (data layer), `data.js`, `data8.js`, `data9.js` (topics, descriptions and statements for each grade, verbatim from the June 2026 draft), `config.js` (your Firebase settings), `firebase-bundle.js` (Firebase SDK 10.14, bundled so nothing loads from a CDN), `firestore.rules`.
+<!-- colleague-scan: 2026-10-09 | hash:8cb6358a -->
+<!-- school-scan: 2026-10-09 | hash:8cb6358a -->

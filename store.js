@@ -1,6 +1,6 @@
 // Data layer. Firebase (Firestore + anonymous sign-in) when configured, otherwise a
 // browser-only demo store so the site can be rehearsed without any setup.
-import { firebaseConfig, SESSION_ID } from './config.js';
+import { firebaseConfig } from './config.js';
 
 const isConfigured = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
 
@@ -22,7 +22,7 @@ function randomId() {
 }
 
 // ---------------- Demo store ----------------
-function makeDemoStore() {
+function makeDemoStore(SESSION_ID) {
   const KEY = 'wtn-demo-' + SESSION_ID;
   const bc = 'BroadcastChannel' in window ? new BroadcastChannel(KEY) : null;
   const listeners = new Set();
@@ -102,16 +102,27 @@ function makeDemoStore() {
 }
 
 // ---------------- Firebase store ----------------
-async function makeFirebaseStore() {
-  const fb = await import('./firebase-bundle.js');
-  const app = fb.initializeApp(firebaseConfig);
-  const auth = fb.getAuth(app);
-  let db;
-  try {
-    db = fb.initializeFirestore(app, { localCache: fb.persistentLocalCache({ tabManager: fb.persistentMultipleTabManager() }) });
-  } catch (e) {
-    db = fb.initializeFirestore(app, {});
-  }
+// One Firebase app, sign-in and database for the whole page. Each grade gets its own session store on top.
+let fbCore = null;
+async function firebaseCore() {
+  if (fbCore) return fbCore;
+  fbCore = (async () => {
+    const fb = await import('./firebase-bundle.js');
+    const app = fb.initializeApp(firebaseConfig);
+    const auth = fb.getAuth(app);
+    let db;
+    try {
+      db = fb.initializeFirestore(app, { localCache: fb.persistentLocalCache({ tabManager: fb.persistentMultipleTabManager() }) });
+    } catch (e) {
+      db = fb.initializeFirestore(app, {});
+    }
+    return { fb, auth, db };
+  })();
+  return fbCore;
+}
+
+async function makeFirebaseStore(SESSION_ID) {
+  const { fb, auth, db } = await firebaseCore();
   const base = ['clDaySessions', SESSION_ID];
   const ratingsCol = () => fb.collection(db, ...base, 'ratings');
   const tablesCol = () => fb.collection(db, ...base, 'tables');
@@ -124,6 +135,8 @@ async function makeFirebaseStore() {
   return {
     mode: 'live',
     async init() {
+      // Every grade shares one anonymous sign-in, so a person keeps the same ID across grades.
+      if (auth.currentUser) { uid = auth.currentUser.uid; return uid; }
       uid = await new Promise((resolve, reject) => {
         const off = fb.onAuthStateChanged(auth, (user) => {
           if (user) { off(); resolve(user.uid); }
@@ -197,7 +210,9 @@ async function makeFirebaseStore() {
   };
 }
 
-export async function createStore() {
-  if (!isConfigured) return makeDemoStore();
-  return makeFirebaseStore();
+// One store per session. Grade 7, 8 and 9 each have their own session.
+const stores = {};
+export async function createStore(sessionId) {
+  if (!stores[sessionId]) stores[sessionId] = isConfigured ? makeFirebaseStore(sessionId) : Promise.resolve(makeDemoStore(sessionId));
+  return stores[sessionId];
 }

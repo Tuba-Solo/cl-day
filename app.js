@@ -1,6 +1,6 @@
 import { DATA } from './data.js';
 import { createStore } from './store.js';
-import { SESSION_ID, DEFAULT_SESSION } from './config.js';
+import { SESSION_ID, PRACTICE, sessionFor } from './config.js';
 
 // ---------- Reference data ----------
 // People rate topics (subject-matter content). Each topic lists the curriculum statements it covers.
@@ -140,11 +140,11 @@ function codeHtml(code) {
 }
 
 // The topic heading, the content description, and the curriculum statements tucked away until opened.
-function topicHtml(t) {
+function topicHtml(t, st = ST, tag = unitLabel(t)) {
   const n = t.codes.length + t.also.length;
-  const row = code => `<li>${codeHtml(code)}<div class="stmt">${esc(ST[code].text)}</div></li>`;
+  const row = code => `<li>${codeHtml(code)}<div class="stmt">${esc(st[code].text)}</div></li>`;
   return `<div class="topic-top"><span class="tid" aria-hidden="true">${esc(t.id)}</span><h3 class="tname">${esc(t.name)}</h3></div>
-    <div class="unit-tag">${esc(unitLabel(t))}</div>
+    ${tag ? `<div class="unit-tag">${esc(tag)}</div>` : ''}
     <p class="tdesc">${esc(t.desc)}</p>
     <details class="stmts"><summary>Curriculum statements (${n})</summary>
       ${t.codes.length ? `<ul class="stmt-list">${t.codes.map(row).join('')}</ul>` : ''}
@@ -208,7 +208,7 @@ async function viewRate(T) {
     <div class="pagehead"><div>
       <span class="step-tag">Step 1 · On your own · 25 min</span>
       <h1>Table ${T} · Your ratings</h1></div>
-      <div class="row"><a class="btn" href="#/">Change table</a><a class="btn" href="#/table/${T}">Review your ratings</a></div>
+      <div class="row"><a class="btn" href="#/7">Change table</a><a class="btn" href="#/table/${T}">Review your ratings</a></div>
     </div>
     <details class="howto" ${seen ? '' : 'open'}>
       <summary>How to rate</summary>
@@ -992,25 +992,384 @@ function viewRankRoom() {
   unsubs.push(store.watchRanks(l => { list = l; paint(); }));
 }
 
+// ---------- Grade picker ----------
+// The first page. Grade 7 is the October 8 gap analysis with tables. Grades 8 and 9 have no tables: everyone rates every topic.
+const GRADE_INFO = {
+  '7': { blurb: 'The October 8 gap analysis. Rate your table’s topics on your own, then review them as a group.' },
+  '8': { blurb: 'Ideologies, economic systems, political systems and parties, and civic engagement.' },
+  '9': { blurb: 'Canada from 1916 to the 1990s, and how Canada’s government and citizenship work today.' }
+};
+const loadGradeData = g => (g === '8' ? import('./data8.js') : import('./data9.js')).then(m => m.DATA);
+
+function viewPicker() {
+  app.innerHTML = `
+    <h1>Find what is truly new</h1>
+    <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
+    <h2>Choose a grade</h2>
+    <div class="table-grid grade-pick">
+      ${['7', '8', '9'].map(g => `
+        <section class="table-card" aria-labelledby="gp-${g}">
+          <div class="head"><span class="letter" aria-hidden="true">${g}</span>
+            <div><h3 id="gp-${g}">Social Studies ${g}</h3><div class="count" data-count="${g}">${g === '7' ? `${TOPICS.length} topics · ${TABLES.length} tables` : '&nbsp;'}</div></div></div>
+          <p>${esc(GRADE_INFO[g].blurb)}</p>
+          <div class="actions"><a class="btn primary" href="#/${g}">Open Grade ${g}</a></div>
+        </section>`).join('')}
+    </div>`;
+  ['8', '9'].forEach(g => loadGradeData(g).then(D => {
+    const el = app.querySelector(`[data-count="${g}"]`);
+    if (el) el.textContent = `${D.topics.length} topics · ${Object.keys(D.sections).length} groups`;
+  }).catch(() => {}));
+}
+
+// ---------- Grades 8 and 9 ----------
+// Each grade has its own data file and its own session. The ratings document records the grade in its table field,
+// so the same database rules cover all three grades.
+const GRADE_CTX = {};
+async function gradeCtx(g) {
+  if (!GRADE_CTX[g]) GRADE_CTX[g] = (async () => {
+    const D = await loadGradeData(g);
+    const st = await createStore(sessionFor(g));
+    await st.init();
+    return { g, D, store: st, session: sessionFor(g), topics: D.topics, TP: Object.fromEntries(D.topics.map(t => [t.id, t])), ST: D.statements, SECS: Object.keys(D.sections) };
+  })().catch(err => { delete GRADE_CTX[g]; throw err; });
+  return GRADE_CTX[g];
+}
+const otherGrade = g => (g === '8' ? '9' : '8');
+const secTopics = (G, s) => G.topics.filter(t => t.section === s);
+const secName = (G, s) => G.D.sections[s].name;
+const isRated = x => !!(x && x.me && x.most);
+
+function viewStart89(G) {
+  const { g } = G;
+  const n = G.topics.length;
+  app.innerHTML = `
+    <h1>Find what is truly new in Grade ${g}</h1>
+    <div class="emph">Evaluate your comfort level with the content of the new curriculum. We will aggregate responses to determine where the critical gaps in teacher knowledge lie.</div>
+    <section class="prio-card" aria-labelledby="go-h">
+      <div><h2 id="go-h">Rate every topic</h2>
+        <p>Grade ${g} has ${n} topics in ${G.SECS.length} groups. Everyone rates every topic on their own laptop. Your answers save as you go, so you can stop and come back later on the same laptop and browser.</p>
+        <p class="muted" id="mine-count" aria-live="polite"></p></div>
+      <div class="row"><a class="btn primary" href="#/${g}/rate">Rate the Grade ${g} topics</a><a class="btn" href="#/${g}/results">See the results</a></div>
+    </section>
+    <h2>The topics</h2>
+    <div class="table-grid">
+      ${G.SECS.map(s => `
+        <section class="table-card" aria-labelledby="sc-${s}">
+          <div class="head"><span class="letter" aria-hidden="true">${s}</span>
+            <div><h3 id="sc-${s}">${esc(secName(G, s))}</h3><div class="count">${secTopics(G, s).length} topics</div></div></div>
+          <ul>${secTopics(G, s).map(t => `<li>${esc(t.name)}</li>`).join('')}</ul>
+        </section>`).join('')}
+    </div>
+    <div class="row" style="margin-top:24px"><a class="btn" href="#/${otherGrade(g)}">Go to Grade ${otherGrade(g)}</a><a class="btn" href="#/">Choose another grade</a></div>`;
+  unsubs.push(G.store.watchMine(doc => {
+    const r = (doc && doc.r) || {};
+    const done = G.topics.filter(t => isRated(r[t.id])).length;
+    const el = app.querySelector('#mine-count');
+    if (el) el.textContent = done ? `You have rated ${done} of ${n} topics.` : '';
+  }));
+}
+
+async function viewRate89(G) {
+  const { g, store: st } = G;
+  const codes = G.topics.map(t => t.id);
+  const seen = lsGet('wtn-howto-seen-89') === '1';
+  app.innerHTML = `
+    <div class="pagehead"><div>
+      <span class="step-tag">Grade ${g} · On your own</span>
+      <h1>Rate the Grade ${g} topics</h1></div>
+      <div class="row"><a class="btn" href="#/${g}">Grade ${g} home</a><a class="btn" href="#/${g}/results">See the results</a></div>
+    </div>
+    <details class="howto" ${seen ? '' : 'open'}>
+      <summary>How to rate</summary>
+      <p>Each card is a topic. Rate the content of the topic, the people, events and ideas a teacher would need to know. You are not rating the wording of the curriculum. Read the short description. Open <b>Curriculum statements</b> if you want to see the exact wording.</p>
+      <dl class="key">
+        <dt>Old program</dt><dd>Where the old Social Studies program taught this content. Tick every grade that taught it. Grade 7 was <i>Canada: Origins, Histories and Movement of Peoples</i>. Grade 8 was <i>Historical Worldviews Examined</i>. Grade 9 was <i>Canada: Opportunities and Challenges</i>. If only part of the topic was taught, tick the grade and name the part in your note.</dd>
+        <dt>Me</dt><dd>How ready you are to teach it.</dd>
+        <dt>Most teachers</dt><dd>How ready the teachers who will teach Grade ${g} at your school are. Not other curriculum leads.</dd>
+        <dt>Ready</dt><dd>Could teach it tomorrow.</dd>
+        <dt>Read up</dt><dd>Knows the topic. Would read up first.</dd>
+        <dt>Learn</dt><dd>Would need to learn the content itself.</dd>
+        <dt>Note</dt><dd>A resource you know, or what confuses you.</dd>
+      </dl>
+      <p>A topic counts as rated once Me and Most teachers are both filled in. Leave a group blank if you are not sure. Your answers save as you go. No names are collected.</p>
+    </details>
+    <div class="progress" role="region" aria-label="Progress">
+      <span class="label" id="prog-label">0 of ${codes.length} rated</span>
+      <div class="bar" aria-hidden="true"><span id="prog-bar"></span></div>
+      <span class="muted" id="save-state" aria-live="polite"></span>
+    </div>
+    <nav class="sec-nav" aria-label="Jump to a group">
+      ${G.SECS.map(s => `<button type="button" class="btn" data-jump="${s}"><span>${s} · ${esc(secName(G, s))}</span><span class="sec-count" data-sec-count="${s}"></span></button>`).join('')}
+    </nav>
+    ${G.SECS.map(s => `
+      <div class="cluster-head" id="sec-${s}"><h2>${s} · ${esc(secName(G, s))}</h2><p>${secTopics(G, s).length} topics</p></div>
+      ${secTopics(G, s).map(t => `<article class="card topic" data-key="${t.id}">
+        <span class="done-tick" hidden>Rated</span>
+        ${topicHtml(t, G.ST, '')}
+        <div class="groups">
+          ${optButtons('o', t.id, OLD, 'Old program')}
+          ${optButtons('me', t.id, LEVELS, 'Me')}
+          ${optButtons('most', t.id, LEVELS, 'Most teachers')}
+        </div>
+        <input class="note" type="text" maxlength="500" placeholder="Note: a resource you know, the part that was taught, or a question" aria-label="Note for ${esc(t.name)}">
+      </article>`).join('')}`).join('')}
+    <div id="done" class="done-banner" hidden>All ${codes.length} Grade ${g} topics rated. Thank you. <a href="#/${otherGrade(g)}">Go to Grade ${otherGrade(g)}</a>.</div>`;
+
+  app.querySelector('details.howto').addEventListener('toggle', () => lsSet('wtn-howto-seen-89', '1'));
+  const saveState = app.querySelector('#save-state');
+  const mine = {};
+  const inflight = new Map();
+
+  const paint = (k) => {
+    const card = app.querySelector(`.card[data-key="${k}"]`);
+    if (!card) return;
+    const x = mine[k] || {};
+    card.querySelectorAll('.opt').forEach(b => {
+      const gr = b.dataset.g, v = b.dataset.v;
+      const on = gr === 'o' ? (x.o || []).includes(v) : x[gr] === v;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const note = card.querySelector('.note');
+    if (document.activeElement !== note) note.value = x.note || '';
+    const complete = isRated(x);
+    card.classList.toggle('complete', complete);
+    card.querySelector('.done-tick').hidden = !complete;
+  };
+  const progress = () => {
+    const done = codes.filter(c => isRated(mine[c])).length;
+    app.querySelector('#prog-label').textContent = `${done} of ${codes.length} rated`;
+    app.querySelector('#prog-bar').style.width = `${Math.round(100 * done / codes.length)}%`;
+    app.querySelector('#done').hidden = done < codes.length;
+    G.SECS.forEach(s => {
+      const ts = secTopics(G, s);
+      const d = ts.filter(t => isRated(mine[t.id])).length;
+      const el = app.querySelector(`[data-sec-count="${s}"]`);
+      el.textContent = `${d} of ${ts.length}`;
+      el.classList.toggle('all', d === ts.length);
+    });
+  };
+  codes.forEach(paint);
+  progress();
+  unsubs.push(st.watchMine(doc => {
+    const r = (doc && doc.r) || {};
+    codes.forEach(k => {
+      if (inflight.get(k) || pending.has('note89-' + k)) return;
+      if (r[k]) mine[k] = JSON.parse(JSON.stringify(r[k]));
+      paint(k);
+    });
+    progress();
+  }));
+
+  const save = (k) => {
+    const x = mine[k] || {};
+    const val = { o: x.o || [], me: x.me || null, most: x.most || null, note: x.note || '' };
+    inflight.set(k, (inflight.get(k) || 0) + 1);
+    // The table field carries the grade. Grades 8 and 9 have no tables.
+    return track(st.saveRating(g, k, val), saveState).finally(() => inflight.set(k, inflight.get(k) - 1));
+  };
+
+  const onClick = (e) => {
+    const j = e.target.closest('[data-jump]');
+    if (j) { app.querySelector(`#sec-${j.dataset.jump}`).scrollIntoView({ behavior: 'smooth' }); return; }
+    const b = e.target.closest('.opt');
+    if (!b) return;
+    const k = b.closest('.card').dataset.key;
+    const x = mine[k] = mine[k] || {};
+    const gr = b.dataset.g, v = b.dataset.v;
+    if (gr === 'o') {
+      let o = x.o || [];
+      if (v === 'none') o = o.includes('none') ? [] : ['none'];
+      else o = o.includes(v) ? o.filter(z => z !== v) : [...o.filter(z => z !== 'none'), v];
+      x.o = o;
+    } else {
+      x[gr] = x[gr] === v ? null : v;
+    }
+    paint(k); progress(); save(k);
+  };
+  const onInput = (e) => {
+    if (!e.target.classList.contains('note')) return;
+    const k = e.target.closest('.card').dataset.key;
+    (mine[k] = mine[k] || {}).note = e.target.value;
+    saveState.textContent = 'Saving…';
+    debounce('note89-' + k, () => save(k));
+  };
+  app.addEventListener('click', onClick);
+  app.addEventListener('input', onInput);
+  unsubs.push(() => { app.removeEventListener('click', onClick); app.removeEventListener('input', onInput); });
+}
+
+function viewResults89(G) {
+  const { g } = G;
+  let ratings = [];
+  app.innerHTML = `
+    <div class="pagehead"><div>
+      <span class="step-tag">Grade ${g} · Results</span>
+      <h1>What the room said about Grade ${g}</h1></div>
+      <div class="row"><a class="btn" href="#/${g}">Grade ${g} home</a><a class="btn" href="#/${g}/rate">Rate the Grade ${g} topics</a></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="export">
+      <h2 style="margin-top:0">Download the data</h2>
+      <p class="muted">CSV files open in Excel. Ratings has one row per person per topic. Each row lists the curriculum statements in that topic. No names are collected.</p>
+      <div class="row">
+        <button type="button" class="btn primary" data-dl="ratings">Ratings (CSV)</button>
+        <button type="button" class="btn" data-dl="summary">Topic summary (CSV)</button>
+        <button type="button" class="btn" data-dl="json">Everything (JSON)</button>
+      </div>
+    </div>
+    <h2>Topics</h2>
+    <div class="toolbar">
+      <label>Group <select class="select" id="sec">
+        <option value="all">All groups</option>
+        ${G.SECS.map(s => `<option value="${s}">${s} · ${esc(secName(G, s))}</option>`).join('')}
+      </select></label>
+      <label>Show <select class="select" id="filter">
+        <option value="all">All topics</option>
+        <option value="learn">Half or more said most teachers must learn it</option>
+        <option value="split">Split on readiness or old program</option>
+      </select></label>
+      <label>Sort <select class="select" id="sort">
+        <option value="learn">Most teachers must learn it</option>
+        <option value="curr">Topic order</option>
+      </select></label>
+    </div>
+    <div class="tablewrap"><table class="sum">
+      <thead><tr><th>Topic</th><th>Name</th><th>Rated</th><th>Most teachers</th><th>Most teachers: Learn</th><th>Me: Learn</th><th>Old program</th><th>Notes</th></tr></thead>
+      <tbody id="sum-body"></tbody></table></div>
+    ${G.D.crosscutting.length ? `<h2>Skills not rated as topics</h2>
+    <p class="muted">These statements ask students to evaluate or compare across several topics. They have no content of their own, so no one rates them.</p>
+    <ul class="cross">${G.D.crosscutting.map(x => `<li>${codeHtml(x.code)}<div><div class="stmt">${esc(G.ST[x.code].text)}</div><div class="muted">${esc(x.why)}</div></div></li>`).join('')}</ul>` : ''}`;
+
+  const pct = x => `${Math.round(x * 100)}%`;
+  const order = G.topics.map(t => t.id);
+  const paint = () => {
+    const people = ratings.filter(r => order.some(k => r.r && r.r[k]));
+    const done = people.reduce((sum, r) => sum + order.filter(k => isRated(r.r[k])).length, 0);
+    const finished = people.filter(r => order.every(k => isRated(r.r[k]))).length;
+    const aggs = Object.fromEntries(order.map(k => [k, aggregate(people, k)]));
+    const learnTopics = order.filter(k => aggs[k].mostN && aggs[k].learnShare >= 0.5).length;
+    app.querySelector('#tiles').innerHTML = `
+      <div class="tile"><div class="num">${people.length}</div><div class="lbl">people rating · ${finished} finished</div></div>
+      <div class="tile"><div class="num">${people.length ? pct(done / (people.length * order.length)) : '0%'}</div><div class="lbl">of all ratings complete</div></div>
+      <div class="tile"><div class="num">${learnTopics}</div><div class="lbl">of ${order.length} topics where half or more said most teachers must learn it</div></div>`;
+    const sec = app.querySelector('#sec').value;
+    const filter = app.querySelector('#filter').value;
+    const sort = app.querySelector('#sort').value;
+    let rows = order.map(k => ({ k, t: G.TP[k], a: aggs[k] }));
+    if (sec !== 'all') rows = rows.filter(r => r.t.section === sec);
+    if (filter === 'learn') rows = rows.filter(r => r.a.mostN && r.a.learnShare >= 0.5);
+    if (filter === 'split') rows = rows.filter(r => r.a.split || r.a.oldSplit);
+    if (sort === 'learn') rows.sort((x, y) => y.a.learnShare - x.a.learnShare || y.a.mostN - x.a.mostN || order.indexOf(x.k) - order.indexOf(y.k));
+    app.querySelector('#sum-body').innerHTML = rows.map(({ k, t, a }) => {
+      const old = OLD.filter(([v]) => a.o[v]).map(([v, l]) => `${l} ${a.o[v]}`).join(', ') || '<span class="muted">None ticked</span>';
+      const badges = [a.split ? 'Split on readiness' : '', a.oldSplit ? 'Split on old program' : ''].filter(Boolean);
+      return `<tr>
+        <td><b>${esc(k)}</b><div class="muted">Group ${esc(t.section)}</div></td>
+        <td class="stmt-cell"><b>${esc(t.name)}</b><div class="muted">${esc(t.codes.join(', ') || 'Also in ' + t.also.join(', '))}</div>${badges.map(b => `<span class="badge split">${b}</span>`).join(' ')}</td>
+        <td class="num">${a.n}</td>
+        <td>${a.mostN ? `Ready ${a.most.R} · Read up ${a.most.U} · Learn ${a.most.L}` : '–'}</td>
+        <td class="num">${a.mostN ? `${a.most.L} of ${a.mostN} · ${pct(a.learnShare)}` : '–'}</td>
+        <td class="num">${a.meN ? `${a.me.L} of ${a.meN}` : '–'}</td>
+        <td>${old}</td>
+        <td>${a.notes.length ? `<details class="rnote-list"><summary>${a.notes.length} ${a.notes.length === 1 ? 'note' : 'notes'}</summary><ul>${a.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>` : '<span class="muted">None</span>'}</td></tr>`;
+    }).join('') || '<tr><td colspan="8" class="muted">Nothing to show yet.</td></tr>';
+  };
+  ['#sec', '#filter', '#sort'].forEach(id => { app.querySelector(id).onchange = paint; });
+  paint();
+  unsubs.push(G.store.watchRatings(null, l => { ratings = l; paint(); }));
+  app.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => download89(G, b.dataset.dl, ratings));
+}
+
+function download89(G, kind, ratings) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  const base = G.session;
+  const order = G.topics.map(t => t.id);
+  const people = ratings.filter(r => order.some(k => r.r && r.r[k]));
+  const meta = id => { const t = G.TP[id]; return [id, t.name, t.section, secName(G, t.section), t.when || '', t.codes.join('; '), t.also.join('; ')]; };
+  const metaHead = ['topic_id', 'topic', 'group', 'group_name', 'when', 'statements', 'also_touches'];
+  if (kind === 'ratings') {
+    const pid = participantIds(people);
+    const rows = [['session', 'grade', 'participant', ...metaHead, 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me', 'most_teachers', 'note', 'updated_at']];
+    people.forEach(r => {
+      order.forEach(k => {
+        const x = r.r[k];
+        if (!x) return;
+        const o = x.o || [];
+        rows.push([G.session, G.g, pid[r.id] || r.id, ...meta(k),
+          o.includes('7') ? 1 : 0, o.includes('8') ? 1 : 0, o.includes('9') ? 1 : 0, o.includes('none') ? 1 : 0,
+          LEVEL_LABEL[x.me] || '', LEVEL_LABEL[x.most] || '', x.note || '', tsString(r.updatedAt)]);
+      });
+    });
+    save(`${base}-ratings-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
+  } else if (kind === 'summary') {
+    const rows = [[...metaHead, 'description', 'raters', 'old_gr7', 'old_gr8', 'old_gr9', 'old_not_taught', 'me_ready', 'me_read_up', 'me_learn', 'most_ready', 'most_read_up', 'most_learn', 'most_learn_share', 'split_readiness', 'split_old_program', 'rater_notes']];
+    order.forEach(id => {
+      const a = aggregate(people, id);
+      rows.push([...meta(id), G.TP[id].desc, a.n, a.o['7'], a.o['8'], a.o['9'], a.o.none,
+        a.me.R, a.me.U, a.me.L, a.most.R, a.most.U, a.most.L, a.mostN ? a.learnShare.toFixed(2) : '',
+        a.split ? 1 : 0, a.oldSplit ? 1 : 0, a.notes.join(' | ')]);
+    });
+    G.D.crosscutting.forEach(x => rows.push(['', 'Skill, not rated', '', '', '', x.code, '', x.why]));
+    save(`${base}-summary-${stamp}.csv`, csv(rows), 'text/csv;charset=utf-8');
+  } else {
+    const norm = o => JSON.parse(JSON.stringify(o, (k, v) => (v && typeof v.toDate === 'function') ? v.toDate().toISOString() : v));
+    const pid = participantIds(people);
+    const out = { session: G.session, grade: G.g, exportedAt: new Date().toISOString(), sections: G.D.sections, topics: G.topics, crosscutting: G.D.crosscutting, ratings: norm(people.map(r => ({ ...r, id: pid[r.id] || r.id }))) };
+    save(`${base}-all-${stamp}.json`, JSON.stringify(out, null, 2), 'application/json');
+  }
+}
+
+// ---------- Page chrome ----------
+// The header and footer name the grade on screen. The picker names all three.
+function setChrome(g) {
+  const eyebrow = document.querySelector('.band .eyebrow');
+  const foot = document.querySelector('.foot');
+  const label = g ? `SOCIAL STUDIES ${g}` : 'SOCIAL STUDIES 7 TO 9';
+  if (eyebrow) eyebrow.textContent = `${label} · CURRICULUM LEADS`;
+  document.title = `What’s truly new? · ${g ? 'Social Studies ' + g : 'Social Studies 7 to 9'}`;
+  if (foot) foot.innerHTML = g
+    ? `<span>Statements from Alberta Education, Draft Social Studies ${g}, June 2026</span><a href="${g === '7' ? '#/room' : `#/${g}/results`}">Facilitator view</a>`
+    : '<span>Statements from Alberta Education, Draft Social Studies 7 to 9, June 2026</span>';
+}
+
 // ---------- Router ----------
-function route() {
+async function route() {
   cleanup();
   const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
   const [view, arg] = parts;
   const T = (arg || '').toUpperCase();
-  if ((view === 'rate' || view === 'table') && !TABLES.includes(T)) { location.hash = '#/'; return; }
+  if ((view === 'rate' || view === 'table') && !TABLES.includes(T)) { location.hash = '#/7'; return; }
   window.scrollTo(0, 0);
-  if (view === 'rate') viewRate(T);
-  else if (view === 'table') viewTable(T);
-  else if (view === 'room') viewRoom();
-  else if (view === 'rank') viewRankRoom(); // priorities closed Oct 8: results only
-  else viewStart();
+  if (view === '8' || view === '9') {
+    setChrome(view);
+    const n = ++routeSeq;
+    let G;
+    try { G = await gradeCtx(view); }
+    catch (err) { console.error(err); app.innerHTML = `<div class="emph"><b>Could not load Grade ${view}.</b> Check the Wi-Fi and reload the page. (${esc(err.message || err)})</div>`; return; }
+    if (n !== routeSeq) return; // The person moved on while the grade was loading.
+    if (arg === 'rate') viewRate89(G);
+    else if (arg === 'results') viewResults89(G);
+    else viewStart89(G);
+  } else if (view === '7' || view === 'rate' || view === 'table' || view === 'room' || view === 'rank') {
+    ++routeSeq;
+    setChrome('7');
+    if (view === 'rate') viewRate(T);
+    else if (view === 'table') viewTable(T);
+    else if (view === 'room') viewRoom();
+    else if (view === 'rank') viewRankRoom(); // priorities closed Oct 8: results only
+    else viewStart();
+  } else {
+    ++routeSeq;
+    setChrome('');
+    viewPicker();
+  }
   app.focus({ preventScroll: true });
 }
+let routeSeq = 0;
 
 (async () => {
   try {
-    store = await createStore();
+    store = await createStore(SESSION_ID);
     await store.init();
   } catch (err) {
     console.error(err);
@@ -1020,8 +1379,8 @@ function route() {
   }
   const banner = document.getElementById('demo-banner');
   if (store.mode === 'demo') banner.hidden = false;
-  else if (SESSION_ID !== DEFAULT_SESSION) {
-    banner.textContent = `Practice session “${SESSION_ID}”. These answers are kept apart from the real data.`;
+  else if (PRACTICE) {
+    banner.textContent = `Practice session “${PRACTICE}”. These answers are kept apart from the real data.`;
     banner.hidden = false;
   }
   connectionStatus();

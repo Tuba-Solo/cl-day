@@ -258,3 +258,14 @@ details.stmts summary::-webkit-details-marker { display: none; }
 .when-opt:focus-within { outline: 3px solid var(--blue); outline-offset: 2px; }
 .when-sub { display: block; font-weight: 400; font-size: 15px; }
 @media (max-width: 760px) { .when-opts { grid-template-columns: 1fr; } }
+
+/* Grade picker and Grades 8 and 9 (added 2026-11-23) */
+.grade-pick .table-card p { margin: 0; }
+.sec-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+.sec-nav .btn { font-size: 15px; min-height: 40px; padding: 6px 12px; }
+.sec-count { font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sec-count.all { color: var(--green); }
+.rnote-list summary { cursor: pointer; font-weight: 600; color: var(--blue); }
+.rnote-list ul { margin: 6px 0 0; padding-left: 18px; }
+table.sum .badge { margin-top: 4px; }
+.cluster-head[id^="sec-"] { scroll-margin-top: 64px; }
